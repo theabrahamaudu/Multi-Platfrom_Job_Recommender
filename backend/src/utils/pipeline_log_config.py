@@ -12,7 +12,7 @@ def logger_pipeline() -> Logger:
 
     Returns:
         Logger: Logger for model building pipeline
-    """ 
+    """
     pipeline_logger = logging.getLogger(__name__)
     pipeline_logger.setLevel(logging.DEBUG)
 
@@ -27,8 +27,6 @@ def logger_pipeline() -> Logger:
     pipeline_stream_handler.setLevel(logging.DEBUG)
     pipeline_stream_handler.setFormatter(formatter)
     pipeline_logger.addHandler(pipeline_stream_handler)
-
-    
 
     return pipeline_logger
 
