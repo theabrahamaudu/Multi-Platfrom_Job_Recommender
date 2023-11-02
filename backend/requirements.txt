@@ -1,7 +1,7 @@
 # local package
 -e .
 
-# external requirements
+# backend requirements
 click
 Sphinx
 coverage
@@ -11,3 +11,4 @@ pandas
 selenium
 beautifulsoup4
 ipykernel
+cassandra-driver

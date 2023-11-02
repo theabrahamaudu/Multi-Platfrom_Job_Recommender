@@ -1,0 +1,39 @@
+version: '3'
+services:
+  # backend:
+  #   build: ./backend
+  #   ports:
+  #     - 8000:8000
+  #   volumes:
+  #     - ./backend:/app
+  #   container_name: backend
+  #   depends_on:
+  #     - cassandra
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - 8501:8501
+  #   volumes:
+  #     - ./frontend:/app
+  #   container_name: frontend
+  #   depends_on:
+  #     - backend
+
+  cassandra:
+    image: docker.io/bitnami/cassandra:latest
+    ports:
+      - '27000:7000'
+      - '29042:9042'
+    volumes:
+      - './databases/cassandra_db:/bitnami'
+    healthcheck:
+      test: [ "CMD", "/opt/bitnami/cassandra/bin/cqlsh", "-u cassandra", "-p cassandra" ,"-e \"describe keyspaces\"" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=cassandra
+    container_name: cassandra
