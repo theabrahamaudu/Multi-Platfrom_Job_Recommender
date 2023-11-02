@@ -3,6 +3,8 @@ import hashlib
 from math import ceil
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import pandas as pd
@@ -89,14 +91,14 @@ class IndeedScraper(SiteScraper):
             num_of_pages = 1
         else:
             pass
-
+        
+        wd = self.driver
         for i in range(0, num_of_pages):
             extension = ""
             if i != 0:
                 extension = "&start=" + str(i * 10)
 
             url = self.url + extension
-            wd = self.driver
             wd.get(url)
             jobs_lists = wd.find_element(By.CSS_SELECTOR, "#mosaic-provider-jobcards")
             jobs = jobs_lists.find_elements(By.TAG_NAME, "li")  # return a list
@@ -118,6 +120,7 @@ class IndeedScraper(SiteScraper):
 
             self.get_job_details(self.job_link, start_at)
             logger.info(f"Scraped {len(self.job_link)} jobs")
+        wd.close()
 
     def get_jobs(self, jobs: list):
 
@@ -238,6 +241,7 @@ class IndeedScraper(SiteScraper):
             'uuid': self.uuid,
             'skipped': False,
             'scraped_at': pd.to_datetime('today').strftime('%Y-%m-%d'),
+            'source': str(self.__class__.__name__)[:-7],
             'job_id': self.job_id,
             'job_title': self.job_title,
             'company_name': self.company_name,
@@ -290,6 +294,7 @@ class LinkedinScraper(IndeedScraper):
         self.get_jobs(jobs)
         # get job details
         self.get_job_details(self.job_link)
+        wd.close()
 
     def get_jobs(self, jobs: list):
         logger.info(f"Scraping {self.num_jobs} jobs from LinkedIn")
@@ -396,6 +401,7 @@ class JobbermanScraper(IndeedScraper):
                 start_at = 14 * (i - 1)
 
             self.get_job_details(self.job_link, start_at)
+            wd.close()
 
     def get_jobs(self, jobs: list):
         n = 0
