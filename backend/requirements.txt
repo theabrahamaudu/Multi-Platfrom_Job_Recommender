@@ -12,3 +12,5 @@ selenium
 beautifulsoup4
 ipykernel
 cassandra-driver
+pyyaml
+pymilvus==2.3.2

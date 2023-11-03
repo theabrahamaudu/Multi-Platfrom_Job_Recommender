@@ -1,5 +1,5 @@
 FROM python:3.10
-WORKDIR /app
+WORKDIR /app/frontend
 COPY requirements.txt .
 COPY setup.py .
 RUN pip install --upgrade pip

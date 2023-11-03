@@ -1,0 +1,9 @@
+database:
+  cassandra:
+    host: cassandra
+    port: 29042
+    username: cassandra
+  milvus:
+    host: standalone
+    port: 19530
+    user: root
