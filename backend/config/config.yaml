@@ -3,6 +3,13 @@ database:
     host: cassandra
     port: 29042
     username: cassandra
+    keyspace: recommender
+    tables:
+      users: users
+      jobs: job_listings
+      search: search_metadata
+      clicks: clicks_metadata
+
   milvus:
     host: standalone
     port: 19530
