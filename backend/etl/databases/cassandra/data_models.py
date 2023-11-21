@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
-    user_id: UUID = Field(min_length=1)
-    created_at: datetime = Field(min_length=1)
+    user_id: UUID
+    created_at: datetime
     username: str = Field(min_length=1, max_length=128)
     first_name: str = Field(min_length=1, max_length=128)
     last_name: str = Field(default="Not specified")
@@ -19,8 +19,8 @@ class User(BaseModel):
 
 
 class Job(BaseModel):
-    db_uuid: UUID = Field(min_length=1)
-    uuid: UUID = Field(min_length=1)
+    db_uuid: UUID
+    uuid: str = Field(strict=True, min_length=32, max_length=36)
     skipped: bool
     scraped_at: datetime
     source: str
@@ -38,15 +38,15 @@ class Job(BaseModel):
 
 
 class Search(BaseModel):
-    user_id: UUID = Field(min_length=1)
-    search_id: UUID = Field(min_length=1)
-    search_timestamp: datetime = Field(min_length=1)
+    user_id: UUID
+    search_id: UUID
+    search_timestamp: datetime
     search_query: str = Field(min_length=1)
     search_results: List[UUID] = Field(default_factory=list[UUID])
 
 
 class Click(BaseModel):
-    user_id: UUID = Field(min_length=1)
-    click_id: UUID = Field(min_length=1)
-    click_timestamp: datetime = Field(min_length=1)
-    job_id: UUID = Field(min_length=1)
+    user_id: UUID
+    click_id: UUID
+    click_timestamp: datetime = Field(strict=True)
+    job_id: UUID

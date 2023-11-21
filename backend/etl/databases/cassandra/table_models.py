@@ -10,12 +10,12 @@ conn = CassandraConn()
 
 
 class Users(Model):
-    __connection__ = conn.session
+    __connection__ = conn.session_name
     __keyspace__ = conn.keyspace_name
     __table_name__ = conn.users_table
     user_id = UUID(primary_key=True, default=uuid4())
-    created_at = DateTime(default=datetime.now(), clustering_order=-1)
-    username = Text(required=True)
+    created_at = DateTime(default=datetime.now())
+    username = Text(required=True, primary_key=True)
     first_name = Text(required=True)
     last_name = Text()
     email = Text()
@@ -26,13 +26,13 @@ class Users(Model):
 
 
 class JobListings(Model):
-    __connection__ = conn.session
+    __connection__ = conn.session_name
     __keyspace__ = conn.keyspace_name
     __table_name__ = conn.jobs_table
     db_uuid = UUID(primary_key=True, default=uuid4())
-    uuid = UUID(required=True)
+    uuid = UUID(required=True, primary_key=True)
     skipped = Boolean()
-    scraped_at = DateTime(required=True, clustering_order=-1)
+    scraped_at = DateTime(required=True)
     source = Text()
     job_id = Text()
     job_title = Text(required=True)
@@ -48,21 +48,25 @@ class JobListings(Model):
 
 
 class SearchMetadata(Model):
-    __connection__ = conn.session
+    __connection__ = conn.session_name
     __keyspace__ = conn.keyspace_name
     __table_name__ = conn.search_table
-    user_id = UUID(primary_key=True),
+    user_id = Text(),
     search_id = UUID(primary_key=True, default=uuid4())
-    search_timestamp = DateTime(default=datetime.now(), clustering_order=-1)
+    search_timestamp = DateTime(default=datetime.now(),
+                                primary_key=True,
+                                clustering_order="desc")
     search_query = Text()
     search_results = List(UUID())
 
 
 class ClicksMetadata(Model):
-    __connection__ = conn.session
+    __connection__ = conn.session_name
     __keyspace__ = conn.keyspace_name
     __table_name__ = conn.clicks_table
-    user_id = UUID(primary_key=True),
+    user_id = Text(),
     click_id = UUID(primary_key=True, default=uuid4())
-    click_timestamp = DateTime(default=datetime.now(), clustering_order=-1)
-    job_id = UUID(required=True)
+    click_timestamp = DateTime(default=datetime.now(),
+                               primary_key=True,
+                               clustering_order="desc")
+    job_id = Text(required=True)

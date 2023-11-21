@@ -4,6 +4,7 @@ database:
     port: 29042
     username: cassandra
     keyspace: recommender
+    session_name: recommender
     tables:
       users: users
       jobs: job_listings
