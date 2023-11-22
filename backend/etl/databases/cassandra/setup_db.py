@@ -48,7 +48,8 @@ class SetupDB(CassandraConn):
             management.drop_table(JobListings)
             management.drop_table(SearchMetadata)
             management.drop_table(ClicksMetadata)
-        except:
+        except Exception as e:
+            e = str(e)
             pass
 
 
