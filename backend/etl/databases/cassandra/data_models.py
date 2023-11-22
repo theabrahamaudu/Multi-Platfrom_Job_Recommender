@@ -48,5 +48,5 @@ class Search(BaseModel):
 class Click(BaseModel):
     user_id: UUID
     click_id: UUID
-    click_timestamp: datetime = Field(strict=True)
+    click_timestamp: datetime
     job_id: UUID

@@ -5,17 +5,17 @@ from backend.etl.databases.cassandra.table_models import Users
 user = APIRouter()
 
 
-@user.get("/users", response_model=list[User], tags=["User"])
+@user.get("/users/read_all", response_model=list[User], tags=["User"])
 async def read_all_users():
     return list(Users.objects.all())
 
 
-@user.get("/users/{user_id}", response_model=User, tags=["User"])
+@user.get("/users/fetch/{user_id}", response_model=User, tags=["User"])
 async def read_user(user_id: str):
     return Users.get(Users.user_id == user_id)
 
 
-@user.post("/users", tags=["User"])
+@user.post("/users/new", tags=["User"])
 async def create_user(user: User):
     return Users.objects.if_not_exists().create(
             username=user.username,
@@ -29,7 +29,7 @@ async def create_user(user: User):
         )
 
 
-@user.put("/users/{user_id}", response_model=User, tags=["User"])
+@user.put("/users/update/{user_id}", response_model=User, tags=["User"])
 async def update_user(user_id: str, user: User):
     Users.objects(user_id=user_id, username=user.username).if_exists().update(
         first_name=user.first_name,
@@ -43,7 +43,7 @@ async def update_user(user_id: str, user: User):
     return Users.get(Users.user_id == user_id)
 
 
-@user.delete("/user/{user_id}", tags=["User"])
+@user.delete("/user/delete/{user_id}", tags=["User"])
 async def delete_user(user_id: str):
     user = Users.get(Users.user_id == user_id)
     return Users.objects(user_id=user.user_id,
