@@ -3,9 +3,11 @@ import uvicorn
 from backend.etl.databases.cassandra.routes.user import user
 from backend.etl.databases.cassandra.routes.search import search
 from backend.etl.databases.cassandra.routes.clicks import clicks
+from backend.etl.databases.cassandra.routes.job import jobs
 
 app = FastAPI()
 app.include_router(user)
+app.include_router(jobs)
 app.include_router(search)
 app.include_router(clicks)
 

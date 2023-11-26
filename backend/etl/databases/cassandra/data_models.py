@@ -19,8 +19,7 @@ class User(BaseModel):
 
 
 class Job(BaseModel):
-    db_uuid: UUID
-    uuid: str = Field(strict=True, min_length=32, max_length=36)
+    uuid: UUID
     skipped: bool
     scraped_at: datetime
     source: str

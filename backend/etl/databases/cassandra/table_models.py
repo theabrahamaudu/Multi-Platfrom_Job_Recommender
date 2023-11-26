@@ -29,7 +29,6 @@ class JobListings(Model):
     __connection__ = conn.session_name
     __keyspace__ = conn.keyspace_name
     __table_name__ = conn.jobs_table
-    db_uuid = UUID(primary_key=True, default=uuid4)
     uuid = UUID(required=True, primary_key=True)
     skipped = Boolean()
     scraped_at = DateTime(required=True)

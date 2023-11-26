@@ -10,8 +10,9 @@ from selenium.common.exceptions import NoSuchElementException
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 from urllib.request import urlopen as uReq
-import time 
+import time
 import random as rand
+from uuid import UUID
 from backend.src.utils.pipeline_log_config import pipeline as logger
 
 
@@ -232,8 +233,8 @@ class IndeedScraper(SiteScraper):
 
     @staticmethod
     def generate_uuid(job_link: str) -> str:
-        uuid = hashlib.md5(job_link.encode()).hexdigest()
-        return uuid
+        hex_string = hashlib.md5(job_link.encode("UTF-8")).hexdigest()
+        return UUID(hex=hex_string)
 
     def create_dataframe(self):
         logger.info("Creating jobs dataframe")
