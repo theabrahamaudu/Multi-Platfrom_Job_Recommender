@@ -1,10 +1,15 @@
 import os
 import dotenv
 import yaml
-from pymilvus import connections
+from pymilvus import connections, db, Collection
+from backend.etl.databases.milvus.table_models import (
+    collection_name,
+    database_name,
+    schema
+)
 
 
-class MilvusConn:
+class SetupDB():
     def __init__(self):
         # load environment variables from .env file
         dotenv.load_dotenv(dotenv_path="./config/.env")
@@ -26,10 +31,23 @@ class MilvusConn:
 
         # connect to milvus
         self.session = connections.connect(
-            alias=self.database_name,
+            alias='default',
             host=self.host,
             port=self.port,
             user=self.username,
-            password=self.password,
-            db_name=self.database_name
+            password=self.password
         )
+
+    def setup_database(self):
+        # create database
+        db.create_database(self.database_name)
+
+        # create collection
+        Collection(
+            name=collection_name,
+            schema=schema,
+            using=database_name,
+        )
+
+    def clean_database(self):
+        db.drop_database(self.database_name)
