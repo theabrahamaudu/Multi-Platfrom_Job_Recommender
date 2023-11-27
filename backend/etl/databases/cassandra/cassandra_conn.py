@@ -25,6 +25,8 @@ class CassandraConn:
         self.port = self.config["database"]["cassandra"]["port"]
         self.session_name =\
             self.config["database"]["cassandra"]["session_name"]
+        self.keyspace_name =\
+            self.config["database"]["cassandra"]["keyspace"]
 
         # connect to cassandra
         self.cluster = Cluster(
@@ -34,7 +36,7 @@ class CassandraConn:
                 password=self.password
             )
         )
-        self.session = self.cluster.connect()
+        self.session = self.cluster.connect(self.keyspace_name)
 
         # set row factory
         self.session.row_factory = dict_factory

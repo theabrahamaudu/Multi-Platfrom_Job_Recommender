@@ -13,6 +13,7 @@ from urllib.request import urlopen as uReq
 import time
 import random as rand
 from uuid import UUID
+from backend.etl.load.load_cassandra import CassandraIO, Job
 from backend.src.utils.pipeline_log_config import pipeline as logger
 
 
@@ -46,19 +47,21 @@ class SiteScraper(ABC):
         pass
 
 
-class IndeedScraper(SiteScraper):
+class IndeedScraper(SiteScraper, CassandraIO):
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
                  url: str = "https://ng.indeed.com/jobs?q=&l=Nigeria&from=searchOnHP&vjk=701c24acfea16b1d",
                  num_jobs: int = 25):
         logger.info(f"Initializing {self.__class__.__name__}")
+        CassandraIO.__init__(self)
+
         logger.info("Setting up webdriver")
         try:
             # Configure Selenium
             options = Options()
             # options.add_argument("--headless")
             options.add_argument("-profile")
-            options.add_argument("/home/abraham-pc/snap/firefox/common/.cache/mozilla/firefox/i4zb3sr8.Selenium")
+            options.add_argument("/home/abraham-pc/snap/firefox/common/.cache/mozilla/firefox/9y04dc5p.Selenium")
             self.driver_path = driver_path
             self.driver = webdriver.Firefox(options=options)
             logger.info("webdriver setup successful")
@@ -114,22 +117,32 @@ class IndeedScraper(SiteScraper):
 
             self.get_jobs(jobs)
 
-            if len(self.job_link) == 0:
-                start_at = 0
-            else:
-                start_at = 15 * i
-
-            self.get_job_details(self.job_link, start_at)
-            logger.info(f"Scraped {len(self.job_link)} jobs")
+        self.get_job_details(self.job_link)
         wd.close()
+        logger.info(f"Scraped {len(self.job_link)} jobs")
+        
 
     def get_jobs(self, jobs: list):
+        # get existing job UUIDs
+        self.get_uuids()
 
         logger.info(f"Parsing {len(jobs)} job cards")
         n = 0
         for job in jobs:
             n += 1
             try:
+                job_link0 = job.find_element(By.XPATH,
+                            f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
+                            f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
+                            f'1]/h2/a').get_attribute('href')
+                
+                # check if job already exists
+                temp_uuid = self.generate_uuid(job_link0)
+                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                # continue if no assertion error
+                self.job_link.append(job_link0)
+                self.uuid.append(temp_uuid)
+
                 job_id0 = job.find_element(By.XPATH,
                                         f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
                                         f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
@@ -160,29 +173,20 @@ class IndeedScraper(SiteScraper):
                                         f'1]').text
                 self.date.append(date0)
 
-                job_link0 = job.find_element(By.XPATH,
-                                            f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                            f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                                            f'1]/h2/a').get_attribute('href')
-                self.job_link.append(job_link0)
-                self.uuid.append(self.generate_uuid(job_link0))
+
             except Exception as e:
                 logger.error(f"Error getting job {n} details: {e}")
 
-    def get_job_details(self, job_link: list, start_at: int):
+    def get_job_details(self, job_link: list):
         logger.info(f"Getting job page details for {len(job_link)} jobs")
-        if start_at == 0:
-            pass
-        else:
-            job_link = job_link[start_at:]
 
         page = 0
+        wd = self.driver
         for link in job_link:
             page += 1
             # implement check for job existence on db
             try:
                 # Load job page
-                wd = self.driver
                 wd.get(link)
 
                 try:
@@ -241,7 +245,7 @@ class IndeedScraper(SiteScraper):
         jobs_dataframe = pd.DataFrame({
             'uuid': self.uuid,
             'skipped': False,
-            'scraped_at': pd.to_datetime('today').strftime('%Y-%m-%d'),
+            'scraped_at': pd.to_datetime('today'),
             'source': str(self.__class__.__name__)[:-7],
             'job_id': self.job_id,
             'job_title': self.job_title,
@@ -258,7 +262,22 @@ class IndeedScraper(SiteScraper):
         return jobs_dataframe
 
     def update_database(self):
-        pass
+        logger.info("Updating database")
+        new_jobs_df = self.create_dataframe()
+
+        if new_jobs_df.empty:
+            logger.info("No new jobs found")
+        else:
+            logger.info(f"Found {len(new_jobs_df)} new jobs")
+            jobs = []
+            for _, row in new_jobs_df.iterrows():
+                jobs.append(Job(**row.to_dict()))
+            logger.info(f"Adding {len(jobs)} new jobs to job_listings table")
+            try:
+                self.write_jobs(jobs)
+                logger.info(f"{len(jobs)} new jobs added successfully")
+            except Exception as e:
+                logger.error(f"Error writing jobs to database: {e}")
 
 
 class LinkedinScraper(IndeedScraper):
@@ -298,12 +317,24 @@ class LinkedinScraper(IndeedScraper):
         wd.close()
 
     def get_jobs(self, jobs: list):
+        # get existing job UUIDs
+        self.get_uuids()
+
         logger.info(f"Scraping {self.num_jobs} jobs from LinkedIn")
         n = 0
         for job in jobs:
             n += 1
             try:
-                job_id0 = job.get_attribute('data-id')
+                job_link0 = job.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
+                
+                # check if job already exists
+                temp_uuid = self.generate_uuid(job_link0)
+                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                # continue if no assertion error
+                self.job_link.append(job_link0)
+                self.uuid.append(temp_uuid)
+
+                job_id0 = str(job.get_attribute('data-id'))
                 self.job_id.append(job_id0)
 
                 job_title0 = job.find_element(By.CSS_SELECTOR, 'h3').get_attribute('innerText')
@@ -317,10 +348,6 @@ class LinkedinScraper(IndeedScraper):
 
                 date0 = job.find_element(By.CSS_SELECTOR, "div>div>time").get_attribute('datetime')
                 self.date.append(date0)
-
-                job_link0 = job.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
-                self.job_link.append(job_link0)
-                self.uuid.append(self.generate_uuid(job_link0))
             except Exception as e:
                 logger.error(f"Error getting job {n} details: {e}")
 
@@ -382,12 +409,15 @@ class JobbermanScraper(IndeedScraper):
     def scrape(self):
         logger.info(f"Scraping {self.num_jobs} jobs from Jobberman")
         num_of_pages = ceil(self.num_jobs / 14)
-
+        wd = self.driver
         for i in range(num_of_pages):
             i = i + 1
             page = "?page=" + str(i)
             url = self.url + page
             
+            
+            wd = self.driver
+             
             wd = self.driver
             wd.get(url)
             jobs_lists = wd.find_element(By.XPATH, "/html/body/main/section/div[2]/div[2]/div[1]")
@@ -396,20 +426,35 @@ class JobbermanScraper(IndeedScraper):
             # get job cards
             self.get_jobs(jobs)
 
-            if i == 1:
-                start_at = 0
-            else:
-                start_at = 14 * (i - 1)
+            # if i == 1:
+            #     start_at = 0
+            # else:
+            #     start_at = 14 * (i - 1)
 
-            self.get_job_details(self.job_link, start_at)
-            wd.close()
+        self.get_job_details(self.job_link)
+        wd.close()
 
     def get_jobs(self, jobs: list):
+        # get existing job UUIDs
+        self.get_uuids()
+
+        logger.info(f"Parsing {len(jobs)} job cards")
         n = 0
         for job in jobs:
             n += 1
             try:
                 if n < 5:
+                    job_link0 = job.find_element(By.XPATH,
+                                                f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div[2]/div/div[1]/a').get_attribute(
+                        'href')
+
+                    # check if job already exists
+                    temp_uuid = self.generate_uuid(job_link0)
+                    assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                    # continue if no assertion error
+                    self.job_link.append(job_link0)
+                    self.uuid.append(temp_uuid)
+
                     job_title0 = job.find_element(By.XPATH,
                                                 f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div[2]/div/div[1]/a/p').get_attribute(
                         'innerText')
@@ -430,16 +475,21 @@ class JobbermanScraper(IndeedScraper):
                         'innerText')
                     self.date.append(date0)
 
-                    job_link0 = job.find_element(By.XPATH,
-                                                f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div[2]/div/div[1]/a').get_attribute(
-                        'href')
-                    self.job_link.append(job_link0)
-                    self.uuid.append(self.generate_uuid(job_link0))
-
                     job_id0 = "Not available on Jobberman"
                     self.job_id.append(job_id0)
 
                 else:
+                    job_link0 = job.find_element(By.XPATH,
+                                                f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div/div/div[1]/a').get_attribute(
+                        'href')
+                    
+                    # check if job already exists
+                    temp_uuid = self.generate_uuid(job_link0)
+                    assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                    # continue if no assertion error
+                    self.job_link.append(job_link0)
+                    self.uuid.append(temp_uuid)
+                    
                     job_title0 = job.find_element(By.XPATH,
                                                 f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div/div/div[1]/a/p').get_attribute(
                         'innerText')
@@ -460,29 +510,19 @@ class JobbermanScraper(IndeedScraper):
                         'innerText')
                     self.date.append(date0)
 
-                    job_link0 = job.find_element(By.XPATH,
-                                                f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div/div/div[1]/a').get_attribute(
-                        'href')
-                    self.job_link.append(job_link0)
-                    self.uuid.append(self.generate_uuid(job_link0))
-
                     job_id0 = "Not available on Jobberman"
                     self.job_id.append(job_id0)
             except Exception as e:
                 logger.error(f"Error getting job {n} details: {e}")
 
-    def get_job_details(self, job_link: list, start_at: int):
-        if start_at == 0:
-            pass
-        else:
-            job_link = job_link[start_at:]
+    def get_job_details(self, job_link: list):
 
         page = 0
+        wd = self.driver
         for link in job_link:
             page += 1
             try:
                 # Load job page
-                wd = self.driver
                 wd.get(link)
 
                 try:
@@ -541,3 +581,4 @@ class JobbermanScraper(IndeedScraper):
                 self.emp_type.append("NA")
                 self.job_func.append("NA")
                 self.ind.append("NA")
+        
