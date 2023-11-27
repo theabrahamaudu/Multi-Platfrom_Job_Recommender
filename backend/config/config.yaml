@@ -12,8 +12,9 @@ database:
       clicks: clicks_metadata
 
   milvus:
-    host: standalone
+    host: localhost
     port: 19530
     username: root
     database: recommender
+    session_name: recommender
     collection: jobs

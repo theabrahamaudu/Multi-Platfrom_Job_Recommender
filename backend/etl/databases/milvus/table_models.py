@@ -6,12 +6,12 @@ with open("./config/config.yaml", "r") as stream:
     config = yaml.safe_load(stream)
 
 collection_name = config["database"]["milvus"]["collection"]
-database_name = config["database"]["milvus"]["database"]
 
 # define fields
 uuid = FieldSchema(
     name="uuid",
     dtype=DataType.VARCHAR,
+    max_length=36,
     description="Job UUID",
     is_primary=True
 )
