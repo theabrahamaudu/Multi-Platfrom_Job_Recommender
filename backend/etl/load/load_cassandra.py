@@ -1,6 +1,7 @@
 from backend.etl.databases.cassandra.data_models import Job
 from backend.etl.databases.cassandra.table_models import JobListings
 from backend.etl.databases.cassandra.cassandra_conn import CassandraConn
+from datetime import datetime
 
 
 class CassandraIO:
@@ -16,11 +17,17 @@ class CassandraIO:
         for i in uuids_set:
             self.uuids.append(str(i['uuid']))
 
+    def get_scrape_dates(self):
+        scrape_dates_set = self.session.execute(
+            "SELECT scraped_at FROM job_listings"
+        )
+        self.scrape_dates = []
+        for i in scrape_dates_set:
+            self.scrape_dates.append(i['scraped_at'])
+
     def write_jobs(self, jobs: list[Job]):
         # write new jobs
-        n=0
         for job in jobs:
-            n += 1
             try:
                 JobListings.objects.if_not_exists().create(
                     uuid=str(job.uuid),
@@ -41,4 +48,19 @@ class CassandraIO:
                 )
             except Exception as e:
                 e = str(e)
-                print(f"job {n} already exists")
+                pass
+
+    def scrub_jobs(self):
+        self.get_uuids()
+        self.get_scrape_dates()
+        old_jobs = []
+        for uuid, scrape_date in zip(self.uuids, self.scrape_dates):
+            if datetime.today() - scrape_date >= 30:
+                old_jobs.append(uuid)
+
+        for uuid in old_jobs:
+            try:
+                JobListings.objects(uuid=uuid).if_exists().delete()
+            except Exception as e:
+                e = str(e)
+                pass

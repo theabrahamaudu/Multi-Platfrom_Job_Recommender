@@ -1,8 +1,7 @@
 from typing import List
-from uuid import UUID
 from pydantic import BaseModel
 
 
 class JobEmbedding(BaseModel):
-    uuid: UUID
+    uuid: str
     embedding: List[float]

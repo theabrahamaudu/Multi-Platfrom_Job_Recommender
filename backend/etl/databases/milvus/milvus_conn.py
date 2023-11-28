@@ -25,6 +25,8 @@ class MilvusConn:
             self.config["database"]["milvus"]["database"]
         self.collection_name =\
             self.config["database"]["milvus"]["collection"]
+        self.index_name =\
+            self.config["database"]["milvus"]["index_name"]
 
         # connect to milvus
         self.session = connections.connect(

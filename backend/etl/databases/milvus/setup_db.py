@@ -1,7 +1,7 @@
 import os
 import dotenv
 import yaml
-from pymilvus import connections, db, Collection
+from pymilvus import connections, db, Collection, utility
 from backend.etl.databases.milvus.table_models import (
     collection_name,
     schema
@@ -29,6 +29,8 @@ class SetupDB():
             self.config["database"]["milvus"]["database"]
         self.collection_name =\
             self.config["database"]["milvus"]["collection"]
+        self.index_name = \
+            self.config["database"]["milvus"]["index_name"]
 
         # connect to milvus default database
         self.session = connections.connect(
@@ -57,20 +59,52 @@ class SetupDB():
         )
 
         # create collection
-        collection = Collection(
+        self.collection = Collection(
             name=collection_name,
             schema=schema,
             using=self.session_name,
             db_name=self.database_name,
             consistency_level="Strong"
         )
-        print(collection.schema)
+
+        # create index
+        self.build_index()
+
+        print(self.collection.schema)
+
+    def build_index(self):
+        self.collection.create_index(
+            field_name="embedding",
+            index_name=self.index_name,
+            index_params={
+                "metric_type": "L2",
+                "index_type": "HNSW",
+                "params": {"M": 64, "efConstruction": 80}
+            }
+        )
 
     def clean_database(self):
-        db.drop_database(
-            db_name=self.database_name,
-            using=self.session_name
-        )
+        try:
+            # reconnect to milvus with new database
+            self.session = connections.connect(
+                alias=self.session_name,
+                host=self.host,
+                port=self.port,
+                user=self.username,
+                password=self.password,
+                db_name=self.database_name
+            )
+
+            utility.drop_collection(
+                collection_name=self.collection_name,
+                using=self.session_name
+            )
+            db.drop_database(
+                db_name=self.database_name,
+                using=self.session_name
+            )
+        except Exception as e:
+            print(e)
 
     def close_conn(self):
         connections.disconnect(self.session_name)

@@ -18,3 +18,4 @@ database:
     database: recommender
     session_name: recommender
     collection: jobs
+    index_name: emb_index
