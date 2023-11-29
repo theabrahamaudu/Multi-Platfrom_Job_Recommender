@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from backend.etl.databases.cassandra.data_models import User
 from backend.etl.databases.cassandra.table_models import Users
+from backend.etl.utils.utilities import scrub_metadata
 
 user = APIRouter()
 
@@ -13,6 +14,12 @@ async def read_all_users():
 @user.get("/users/fetch/{user_id}", response_model=User, tags=["User"])
 async def read_user(user_id: str):
     return Users.get(Users.user_id == user_id)
+
+
+@user.post("/users/clean/{user_id}", tags=["User"])
+async def scrub_user_metadata(user_id: str):
+    scrub_metadata(user_id)
+    return "Metadata scrubbed"
 
 
 @user.post("/users/new", tags=["User"])
