@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pymilvus import Collection
-from backend.etl.databases.milvus.milvus_conn import MilvusConn
-from backend.etl.databases.milvus.table_models import collection_name
-from backend.etl.transform.vectorizer import vectorize
-from backend.etl.utils.utilities import get_user_metadata
+from etl.databases.milvus.milvus_conn import MilvusConn
+from etl.databases.milvus.table_models import collection_name
+from etl.transform.vectorizer import vectorize
+from etl.utils.utilities import get_user_metadata
 from uuid import UUID
 
 

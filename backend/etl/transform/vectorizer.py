@@ -1,4 +1,4 @@
-from backend.src.models.embedding_model import model
+from src.models.embedding_model import model
 from numpy import ndarray
 
 

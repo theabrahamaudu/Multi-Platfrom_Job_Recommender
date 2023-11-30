@@ -1,4 +1,4 @@
-from backend.etl.databases.cassandra.cassandra_conn import CassandraConn
+from etl.databases.cassandra.cassandra_conn import CassandraConn
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.columns import (
     UUID, Text, DateTime, Boolean, List, Set, Map

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from backend.etl.databases.cassandra.data_models import User
-from backend.etl.databases.cassandra.table_models import Users
-from backend.etl.utils.utilities import scrub_metadata
+from fastapi.responses import JSONResponse
+from etl.databases.cassandra.data_models import User
+from etl.databases.cassandra.table_models import Users
+from etl.utils.utilities import scrub_metadata
 
 user = APIRouter()
 
@@ -14,6 +15,15 @@ async def read_all_users():
 @user.get("/users/fetch/{user_id}", response_model=User, tags=["User"])
 async def read_user(user_id: str):
     return Users.get(Users.user_id == user_id)
+
+
+@user.get("/users/login/{username}", response_model=User, tags=["User"])
+async def login_user(username: str):
+    try:
+        return Users.get(Users.username == username)
+    except Exception as e:
+        e = str(e)
+        return JSONResponse(status_code=404, content={"message": e})
 
 
 @user.post("/users/clean/{user_id}", tags=["User"])

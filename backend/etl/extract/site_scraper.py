@@ -13,8 +13,8 @@ from urllib.request import urlopen as uReq
 import time
 import random as rand
 from uuid import UUID
-from backend.etl.load.load_cassandra import CassandraIO, Job
-from backend.src.utils.pipeline_log_config import pipeline as logger
+from etl.load.load_cassandra import CassandraIO, Job
+from src.utils.pipeline_log_config import pipeline as logger
 
 
 class SiteScraper(ABC):

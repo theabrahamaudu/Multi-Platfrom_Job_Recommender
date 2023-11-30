@@ -1,4 +1,4 @@
-from backend.etl.databases.cassandra.cassandra_conn import CassandraConn
+from etl.databases.cassandra.cassandra_conn import CassandraConn
 from cassandra.query import ValueSequence
 from uuid import UUID
 session = CassandraConn().session

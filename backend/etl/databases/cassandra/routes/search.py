@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from backend.etl.databases.cassandra.data_models import Search
-from backend.etl.databases.cassandra.table_models import SearchMetadata
+from etl.databases.cassandra.data_models import Search
+from etl.databases.cassandra.table_models import SearchMetadata
 
 
 search = APIRouter()

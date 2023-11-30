@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from backend.etl.databases.cassandra.data_models import Click
-from backend.etl.databases.cassandra.table_models import ClicksMetadata
+from etl.databases.cassandra.data_models import Click
+from etl.databases.cassandra.table_models import ClicksMetadata
 
 
 clicks = APIRouter()

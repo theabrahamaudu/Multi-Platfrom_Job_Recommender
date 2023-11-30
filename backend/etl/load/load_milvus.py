@@ -1,8 +1,8 @@
-from backend.etl.databases.milvus.milvus_conn import MilvusConn
-from backend.etl.databases.milvus.data_models import JobEmbedding
-from backend.etl.databases.milvus.table_models import collection_name
-from backend.etl.load.load_cassandra import CassandraIO, JobListings
-from backend.etl.transform.vectorizer import vectorize
+from etl.databases.milvus.milvus_conn import MilvusConn
+from etl.databases.milvus.data_models import JobEmbedding
+from etl.databases.milvus.table_models import collection_name
+from etl.load.load_cassandra import CassandraIO, JobListings
+from etl.transform.vectorizer import vectorize
 from pymilvus import Collection
 from datetime import datetime
 

@@ -101,5 +101,7 @@ if st.session_state["signup"]:
                     "Oops! We were unable to connect to the server.\
                         Please try again 😬"
                 )
+                
+if st.session_state["signup"]:
     if st.button("**Cancel**"):
         st.session_state["signup"] = False

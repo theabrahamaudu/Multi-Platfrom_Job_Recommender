@@ -1,8 +1,8 @@
 import dotenv
-from backend.etl.databases.cassandra.cassandra_conn import CassandraConn
+from etl.databases.cassandra.cassandra_conn import CassandraConn
 from cassandra.cqlengine import management
 # Table models
-from backend.etl.databases.cassandra.table_models import (
+from etl.databases.cassandra.table_models import (
     Users, JobListings, ClicksMetadata, SearchMetadata
 )
 

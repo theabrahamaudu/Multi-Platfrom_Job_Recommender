@@ -2,7 +2,7 @@ import os
 import dotenv
 import yaml
 from pymilvus import connections, db, Collection, utility
-from backend.etl.databases.milvus.table_models import (
+from etl.databases.milvus.table_models import (
     collection_name,
     schema
 )

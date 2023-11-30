@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from backend.etl.databases.cassandra.data_models import Job
-from backend.etl.databases.cassandra.table_models import JobListings
+from etl.databases.cassandra.data_models import Job
+from etl.databases.cassandra.table_models import JobListings
 
 
 jobs = APIRouter()
