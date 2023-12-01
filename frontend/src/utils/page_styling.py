@@ -1,5 +1,6 @@
 import base64
 import streamlit as st
+from time import sleep
 
 
 # set background image
@@ -68,3 +69,9 @@ def bold_italics(text):
 
 def color(text, color):
     return f":{color}[{text}]"
+
+
+def refresh(emoji: str = "🍲", time: int = 1):
+    with st.spinner(f"Cooking... {emoji}"):
+        sleep(time)
+        st.rerun()

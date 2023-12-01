@@ -20,7 +20,9 @@ async def read_user(user_id: str):
 @user.get("/users/login/{username}", response_model=User, tags=["User"])
 async def login_user(username: str):
     try:
-        return Users.get(Users.username == username)
+        return Users.objects(
+            username=username
+        ).allow_filtering().first()
     except Exception as e:
         e = str(e)
         return JSONResponse(status_code=404, content={"message": e})
@@ -34,16 +36,28 @@ async def scrub_user_metadata(user_id: str):
 
 @user.post("/users/new", tags=["User"])
 async def create_user(user: User):
-    return Users.objects.if_not_exists().create(
-            username=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            email=user.email,
-            password=user.password,
-            skills=user.skills,
-            work_history=user.work_history,
-            preferences=user.preferences
+    try:
+        existing_user = Users.objects(
+            username=user.username
+        ).allow_filtering().first()
+        assert user.email == existing_user.email
+        return JSONResponse(
+            status_code=409, 
+            content={"message": "User with this username or email address\
+                     already exists!"}
         )
+    except Exception as e:
+        e = str(e)
+        return Users.objects.if_not_exists().create(
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                email=user.email,
+                password=user.password,
+                skills=user.skills,
+                work_history=user.work_history,
+                preferences=user.preferences
+            )
 
 
 @user.put("/users/update/{user_id}", response_model=User, tags=["User"])
