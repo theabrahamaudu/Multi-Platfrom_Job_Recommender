@@ -1,17 +1,17 @@
 import streamlit as st
-from streamlit_extras.switch_page_button import switch_page 
+from streamlit_extras.switch_page_button import switch_page
 import requests
-from time import sleep
 from src.utils.hasher import hash_password
 from src.utils.page_styling import (
     page_bg, form_bg, bold, italics, bold_italics, color,
     refresh
 )
 from src.utils.frontend_log_config import frontend as logger
+from src.utils.config import test_server
 
 
 # server url
-server = "http://localhost:28000"
+server = test_server
 
 # page config
 st.set_page_config(
@@ -80,7 +80,7 @@ if st.session_state.get("user") is None:
 else:
     # After loging in
     user = st.session_state.get("user")
-    st.subheader(f"Welcome, {user['first_name']}!")
+    st.subheader(f"Welcome, {user['first_name'].capitalize()!")
 
     with st.sidebar:
         if st.button("Logout", type="primary"):

@@ -42,7 +42,7 @@ async def create_user(user: User):
         ).allow_filtering().first()
         assert user.email == existing_user.email
         return JSONResponse(
-            status_code=409, 
+            status_code=409,
             content={"message": "User with this username or email address\
                      already exists!"}
         )
@@ -74,7 +74,7 @@ async def update_user(user_id: str, user: User):
     return Users.get(Users.user_id == user_id)
 
 
-@user.delete("/user/delete/{user_id}", tags=["User"])
+@user.delete("/users/delete/{user_id}", tags=["User"])
 async def delete_user(user_id: str):
     user = Users.get(Users.user_id == user_id)
     return Users.objects(user_id=user.user_id,

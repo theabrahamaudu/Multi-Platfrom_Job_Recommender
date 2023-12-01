@@ -1,0 +1,3 @@
+server:
+  test: http://localhost:28000
+  deployment: backend
