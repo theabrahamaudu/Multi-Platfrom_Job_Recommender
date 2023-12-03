@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
+from copy import deepcopy
 import requests
 from src.utils.hasher import hash_password
 from src.utils.page_styling import (
@@ -17,6 +18,7 @@ server = test_server
 st.set_page_config(
     page_title="Job Recommender",
     page_icon="🕸",
+    layout="wide"
 )
 
 page_bg('./assets/bg_img.jpg')
@@ -26,6 +28,9 @@ form_bg('./assets/form_bg.jpg')
 # session state variables
 if "user" not in st.session_state:
     st.session_state["user"] = None
+# temporary user data to store changes temporarily
+if "temp_user" not in st.session_state:
+    st.session_state["temp_user"] = None
 if "signup" not in st.session_state:
     st.session_state["signup"] = False
 
@@ -54,6 +59,7 @@ if st.session_state.get("user") is None:
                     actual_pword = user["password"]
                     if given_pword == actual_pword:
                         st.session_state["user"] = user
+                        st.session_state["temp_user"] = deepcopy(user)
                         st.success("Login Successful! 😀")
                         refresh()
                     else:
@@ -80,11 +86,12 @@ if st.session_state.get("user") is None:
 else:
     # After loging in
     user = st.session_state.get("user")
-    st.subheader(f"Welcome, {user['first_name'].capitalize()!")
+    st.subheader(f"Welcome, {user['first_name'].capitalize()}!")
 
     with st.sidebar:
         if st.button("Logout", type="primary"):
-            st.session_state["user"] = None
+            for key in st.session_state.keys():
+                del st.session_state[key]
             refresh()
     
     # extra nav buttons
