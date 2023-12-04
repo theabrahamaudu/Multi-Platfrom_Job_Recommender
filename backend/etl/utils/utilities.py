@@ -98,7 +98,8 @@ def get_user_data(user_id: UUID) -> str:
     # flatten work history
     try:
         flat_work_history = ", ".join(
-            value for experience in work_history for value in experience.values()
+            value for experience in
+            work_history for value in experience.values()
         )
     except TypeError:
         flat_work_history = ""
