@@ -19,7 +19,7 @@ server = test_server
 
 # page config
 st.set_page_config(
-    page_title="My Profile",
+    page_title="Search Jobs",
     page_icon="🕸",
     layout="wide"
 )
@@ -82,7 +82,7 @@ else:
                     st.warning("Oops! The universe is not on your side.\
                             We couldn't cook any recommendations for you.")
 
-        else:
+        if st.session_state.get("recommended_jobs") is not None:
             for job_id in st.session_state.get("recommended_jobs")[:3]:
                 with st.container():
                     job = requests.get(
@@ -120,7 +120,8 @@ else:
                             open_link(
                                 job["job_link"]
                             )
-    else:
+    if st.session_state.get("query") is not None and\
+       st.session_state.get("query") != " ":
         st.subheader(bold("Here you go..."))
         st.write(bold("Top jobs that match your search:"))
         if st.session_state.get("query") != st.session_state.get("old_query"):
