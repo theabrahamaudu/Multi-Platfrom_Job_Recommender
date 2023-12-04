@@ -4,7 +4,7 @@ from etl.databases.cassandra.routes.user import user
 from etl.databases.cassandra.routes.search import search
 from etl.databases.cassandra.routes.clicks import clicks
 from etl.databases.cassandra.routes.job import jobs
-from etl.databases.milvus.routes.job_index import job_index
+from etl.databases.chroma.routes.job_index import job_index
 
 app = FastAPI()
 app.include_router(user)

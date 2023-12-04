@@ -11,11 +11,8 @@ database:
       search: search_metadata
       clicks: clicks_metadata
 
-  milvus:
-    host: localhost
-    port: 19530
-    username: root
-    database: recommender
-    session_name: recommender
-    collection: jobs
-    index_name: emb_index
+  chroma:
+    host: "localhost"
+    port: "8500"
+    username: "admin"
+    collection: "jobs"

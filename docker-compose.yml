@@ -5,7 +5,7 @@ services:
   #   ports:
   #     - 8000:8000
   #   volumes:
-  #     - ./backend:/app/backend
+  #     - ./backend:/app
   #   container_name: backend
   #   depends_on:
   #     - cassandra
@@ -15,7 +15,7 @@ services:
   #   ports:
   #     - 8501:8501
   #   volumes:
-  #     - ./frontend:/app/frontend
+  #     - ./frontend:/app
   #   container_name: frontend
   #   depends_on:
   #     - backend

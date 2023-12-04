@@ -1,33 +1,23 @@
-from etl.databases.milvus.milvus_conn import MilvusConn
-from etl.databases.milvus.data_models import JobEmbedding
-from etl.databases.milvus.table_models import collection_name
+from etl.databases.chroma.chroma_conn import ChromaConn
+from etl.databases.chroma.data_models import JobEmbedding
 from etl.load.load_cassandra import CassandraIO, JobListings
 from etl.transform.vectorizer import vectorize
-from pymilvus import Collection
 from datetime import datetime
 
 
-class MilvusIO(CassandraIO):
+class ChromaIO(CassandraIO):
     def __init__(self):
-        self.milvus_conn = MilvusConn()
+        self.chroma_conn = ChromaConn()
         CassandraIO.__init__(self)
 
-        self.jobs_table = Collection(
-            name=collection_name,
-            using=self.milvus_conn.session_name,
+        self.jobs_table = self.chroma_conn.session.get_collection(
+            name=self.chroma_conn.collection_name,
+            embedding_function=self.chroma_conn.embedding_function
         )
-        self.jobs_table.load()
 
     def get_vector_uuids(self):
         try:
-            vector_uuid_set = self.jobs_table.query(
-                expr="",
-                output_fields=["uuid"],
-                limit=16000
-            )
-            self.vector_uuids = []
-            for i in vector_uuid_set:
-                self.vector_uuids.append(str(i['uuid']))
+            self.vector_uuids = self.jobs_table.get()["ids"]
         except Exception as e:
             print(e)
             self.vector_uuids = []
@@ -44,16 +34,16 @@ class MilvusIO(CassandraIO):
             job = dict(JobListings.objects(uuid=id).get())
             job_vector = JobEmbedding(
                 uuid=str(id),
-                embedding=vectorize(job).tolist()
+                embedding=vectorize(job)
             )
             uuid_list.append(job_vector.uuid)
-            vector_list.append(job_vector.embedding)
+            vector_list.append(job_vector.embedding[0])
 
         if len(uuid_list) > 0:
-            self.jobs_table.insert([
-                uuid_list,
-                vector_list
-            ])
+            self.jobs_table.add(
+                ids=uuid_list,
+                embeddings=vector_list
+            )
 
     def scrub_jobs(self):
         self.get_uuids()
@@ -64,9 +54,5 @@ class MilvusIO(CassandraIO):
                 old_jobs.append(uuid)
 
         self.jobs_table.delete(
-            expr=f"uuid in {old_jobs}",
+            ids=old_jobs
         )
-
-    def close(self):
-        self.jobs_table.release()
-        self.milvus_conn.close()
