@@ -82,7 +82,7 @@ else:
                     st.warning("Oops! The universe is not on your side.\
                             We couldn't cook any recommendations for you.")
 
-        if st.session_state.get("recommended_jobs") is not None:
+        else:
             for job_id in st.session_state.get("recommended_jobs")[:3]:
                 with st.container():
                     job = requests.get(
@@ -120,9 +120,7 @@ else:
                             open_link(
                                 job["job_link"]
                             )
-    if st.session_state.get("query") is not None or\
-       st.session_state.get("query") != " ":
-
+    else:
         st.subheader(bold("Here you go..."))
         st.write(bold("Top jobs that match your search:"))
         if st.session_state.get("query") != st.session_state.get("old_query"):

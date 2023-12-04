@@ -114,9 +114,43 @@ else:
                 search_query = " "
             st.session_state["query"] = search_query
             switch_page("Search Jobs")
-    # Profile button
-    if profile.button("View Profile"):
-        switch_page("Profile")
+    # Profile shortcut/reminder
+    with profile.form("Profile"):
+        to_update = []
+        if st.session_state.get("user")["skills"] == []:
+            to_update.append("Skills")
+        if st.session_state.get("user")["work_history"] == []:
+            to_update.append("Work History")
+        if st.session_state.get("user")["preferences"] == {}:
+            to_update.append("Preferences")
+        
+        if len(to_update) > 0:
+            st.subheader(bold("Pssst! This is important  🤧"))
+
+        if len(to_update) > 2:
+            st.warning(
+                f"We want to help, but you need to work with us.\
+                  Update your **{', '.join(to_update[:-1])}** and **{to_update[-1]}**\
+                  to get better recommedations."
+            )
+        elif len(to_update) == 2:
+            st.warning(
+                f"We want to help, but you need to work with us.\
+                  Update your **{to_update[0]}** and **{to_update[1]}**\
+                  to get better recommedations."
+            )
+        elif len(to_update) == 1:
+            st.warning(
+                f"We want to help, but you need to work with us.\
+                  Update your **{to_update[0]}**\
+                  to get better recommedations."
+            )
+        if len(to_update) > 0:
+            if st.form_submit_button("Update Profile", type="primary"):
+                switch_page("Profile")
+        else:
+            if st.form_submit_button("View Profile"):
+                switch_page("Profile")
 
 # signup form
 if st.session_state.get("signup"):

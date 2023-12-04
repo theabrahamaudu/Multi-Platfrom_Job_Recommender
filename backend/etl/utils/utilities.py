@@ -90,15 +90,24 @@ def get_user_data(user_id: UUID) -> str:
     preferences = user_data['preferences']
 
     # flatten skills
-    flat_skills = ", ".join(skills)
+    try:
+        flat_skills = ", ".join(skills)
+    except TypeError:
+        flat_skills = ""
 
     # flatten work history
-    flat_work_history = ", ".join(
-        value for experience in work_history for value in experience.values()
-    )
+    try:
+        flat_work_history = ", ".join(
+            value for experience in work_history for value in experience.values()
+        )
+    except TypeError:
+        flat_work_history = ""
 
     # flatten preferences
-    flat_preferences = ", ".join(preferences.values())
+    try:
+        flat_preferences = ", ".join(preferences.values())
+    except AttributeError:
+        flat_preferences = ""
 
     data_string = f"{flat_skills}, {flat_work_history}, {flat_preferences}"
 
