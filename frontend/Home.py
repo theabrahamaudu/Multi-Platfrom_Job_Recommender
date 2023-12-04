@@ -33,6 +33,14 @@ if "temp_user" not in st.session_state:
     st.session_state["temp_user"] = None
 if "signup" not in st.session_state:
     st.session_state["signup"] = False
+if "query" not in st.session_state:
+    st.session_state["query"] = None
+if "old_query" not in st.session_state:
+    st.session_state["old_query"] = None
+if "search_results" not in st.session_state:
+    st.session_state["search_results"] = []
+if "recommeded_jobs" not in st.session_state:
+    st.session_state["recommended_jobs"] = None
 
 # page scripts
 st.title("Multi-Platform Job Recommender")
@@ -94,10 +102,19 @@ else:
                 del st.session_state[key]
             refresh()
     
-    # extra nav buttons
+    # Quick search
     search, profile = st.columns([1, 1], gap="large")
-    if search.button("Search Jobs"):
-        switch_page("Search Jobs")
+    with search.form("Quick Search"):
+        st.subheader(bold("Lets get you employed 💼"))
+        search_query = st.text_input(bold("Search Jobs..."),
+                                     placeholder="e.g. Python Developer")
+        submitted = st.form_submit_button("Search 🕵", type="primary")
+        if submitted:
+            if search_query == "":
+                search_query = " "
+            st.session_state["query"] = search_query
+            switch_page("Search Jobs")
+    # Profile button
     if profile.button("View Profile"):
         switch_page("Profile")
 
@@ -116,42 +133,43 @@ if st.session_state.get("signup"):
         # name
         first_name = st.text_input(bold("First Name"))
         last_name = st.text_input(bold("Last Name"))
-        if len(first_name) < 1 or len(last_name) < 1:
-            st.write(color("Ha-ha-ha, name cannot be blank.", "red"))
 
         # email
         email = st.text_input(bold("Email"))
-        if "@" not in email or len(email) < 4:
-            st.write(color("Invalid email.", "red"))
 
         # password
         password = st.text_input(bold("Password"), type="password")
         confirm_password = st.text_input(bold("Confirm Password"),
                                          type="password")
 
-        if password == confirm_password:
-            pass
-        else:
-            st.write(color("    We know you're excited, but the passwords have to match... 🥶", "red"))
-        
         # store info
         submitted = st.form_submit_button(bold("Signup"), type="primary", )
 
         if submitted:
             # Validate Data
             validated = True
-            if password != confirm_password or password == "":
+            if password == "":
+                st.write(color("Ha-ha-ha, password cannot be blank.", "red"))
+                validated = False
+
+            if password != confirm_password:
+                st.write(color("    We know you're excited, but the passwords have to match... 🥶", "red"))
                 validated = False
 
             if username == 'dig_bick2023':
                 validated = False
 
-            if "@" not in email:
+            if username == "":
+                st.write(color("Ha-ha-ha, username cannot be blank.", "red"))
                 validated = False
 
-            for value in [username, first_name, last_name, email]:
-                if value == "":
-                    validated = False
+            if "@" not in email or len(email) < 4:
+                st.write(color("Nope, invalid email.", "red"))
+                validated = False
+
+            if len(first_name) < 1 or len(last_name) < 1:
+                validated = False
+                st.write(color("Ha-ha-ha, name cannot be blank.", "red"))
 
             if validated:
                 try:
@@ -186,7 +204,7 @@ if st.session_state.get("signup"):
                             Please try again 😬"
                     )
             else:
-                st.error("Something's not right with the info you've provided")
+                st.error("Please fix the errors above.")
 
     if st.button("**Cancel**"):
         st.session_state["signup"] = False

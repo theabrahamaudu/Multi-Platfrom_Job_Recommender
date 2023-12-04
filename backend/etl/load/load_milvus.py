@@ -30,6 +30,7 @@ class MilvusIO(CassandraIO):
                 self.vector_uuids.append(str(i['uuid']))
         except Exception as e:
             print(e)
+            self.vector_uuids = []
 
     def load_from_cassandra(self):
         self.get_vector_uuids()

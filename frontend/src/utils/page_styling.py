@@ -1,6 +1,7 @@
 import base64
 import streamlit as st
 from time import sleep
+from streamlit.components.v1 import html
 
 
 # set background image
@@ -53,6 +54,15 @@ def form_bg(side_bg: str, side_bg_ext: str = "jpg"):
         """,
         unsafe_allow_html=True,
         )
+
+
+def open_link(url):
+    open_script = """
+        <script type="text/javascript">
+            window.open('%s', '_blank').focus();
+        </script>
+    """ % (url)
+    html(open_script)
 
 
 def bold(text):

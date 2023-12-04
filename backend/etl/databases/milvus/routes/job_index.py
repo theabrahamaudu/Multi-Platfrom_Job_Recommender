@@ -15,13 +15,12 @@ jobs_table = Collection(
     name=collection_name,
     using=conn.session_name,
 )
-jobs_table.load()
 
 
 @job_index.get("/index/search/{user_id}&&{query}",
                response_model=list[str], tags=["Index"])
 async def search_index(query: str, user_id: UUID):
-
+    jobs_table.load()
     user_metadata = get_user_metadata(user_id)
     composite_query = f"{query}, {user_metadata}"
     query_vector = vectorize(composite_query).tolist()
