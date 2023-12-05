@@ -13,7 +13,6 @@ beautifulsoup4
 ipykernel
 cassandra-driver
 pyyaml
-pymilvus==2.3.2
 chromadb-client
 pydantic
 fastapi

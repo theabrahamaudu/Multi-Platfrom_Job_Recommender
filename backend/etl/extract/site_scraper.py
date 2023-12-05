@@ -3,8 +3,6 @@ import hashlib
 from math import ceil
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import pandas as pd
@@ -50,7 +48,7 @@ class SiteScraper(ABC):
 class IndeedScraper(SiteScraper, CassandraIO):
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
-                 url: str = "https://ng.indeed.com/jobs?q=&l=Nigeria&from=searchOnHP&vjk=701c24acfea16b1d",
+                 url: str = "https://ng.indeed.com/jobs?q=&l=Nigeria&from=searchOnHP&vjk=701c24acfea16b1d", # noqa
                  num_jobs: int = 25):
         logger.info(f"Initializing {self.__class__.__name__}")
         CassandraIO.__init__(self)
@@ -61,7 +59,7 @@ class IndeedScraper(SiteScraper, CassandraIO):
             options = Options()
             # options.add_argument("--headless")
             options.add_argument("-profile")
-            options.add_argument("/home/abraham-pc/snap/firefox/common/.cache/mozilla/firefox/9y04dc5p.Selenium")
+            options.add_argument("/home/abraham-pc/snap/firefox/common/.cache/mozilla/firefox/9y04dc5p.Selenium") # noqa
             self.driver_path = driver_path
             self.driver = webdriver.Firefox(options=options)
             logger.info("webdriver setup successful")
@@ -95,7 +93,7 @@ class IndeedScraper(SiteScraper, CassandraIO):
             num_of_pages = 1
         else:
             pass
-        
+
         wd = self.driver
         for i in range(0, num_of_pages):
             extension = ""
@@ -104,7 +102,10 @@ class IndeedScraper(SiteScraper, CassandraIO):
 
             url = self.url + extension
             wd.get(url)
-            jobs_lists = wd.find_element(By.CSS_SELECTOR, "#mosaic-provider-jobcards")
+            jobs_lists = wd.find_element(
+                By.CSS_SELECTOR,
+                "#mosaic-provider-jobcards"
+            )
             jobs = jobs_lists.find_elements(By.TAG_NAME, "li")  # return a list
 
             # close email pop-up
@@ -120,7 +121,6 @@ class IndeedScraper(SiteScraper, CassandraIO):
         self.get_job_details(self.job_link)
         wd.close()
         logger.info(f"Scraped {len(self.job_link)} jobs")
-        
 
     def get_jobs(self, jobs: list):
         # get existing job UUIDs
@@ -131,48 +131,53 @@ class IndeedScraper(SiteScraper, CassandraIO):
         for job in jobs:
             n += 1
             try:
-                job_link0 = job.find_element(By.XPATH,
-                            f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                            f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                            f'1]/h2/a').get_attribute('href')
-                
+                job_link0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div[' # noqa
+                    f'1]/h2/a').get_attribute('href')
+
                 # check if job already exists
                 temp_uuid = self.generate_uuid(job_link0)
-                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists" # noqa
                 # continue if no assertion error
                 self.job_link.append(job_link0)
                 self.uuid.append(temp_uuid)
 
-                job_id0 = job.find_element(By.XPATH,
-                                        f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                        f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                                        f'1]/h2/a/span').get_attribute('id')
+                job_id0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div[' # noqa
+                    f'1]/h2/a/span').get_attribute('id')
                 self.job_id.append(job_id0)
 
-                job_title0 = job.find_element(By.XPATH,
-                                            f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                            f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                                            f'1]/h2').get_attribute('innerText')
+                job_title0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div[' # noqa
+                    f'1]/h2').get_attribute('innerText')
                 self.job_title.append(job_title0)
 
-                company_name0 = job.find_element(By.XPATH,
-                                                f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                                f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                                                f'2]/div/span').get_attribute('innerText')
+                company_name0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div[' # noqa
+                    f'2]/div/span').get_attribute('innerText')
                 self.company_name.append(company_name0)
 
-                location0 = job.find_element(By.XPATH,
-                                            f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                            f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div['
-                                            f'2]/div').get_attribute('innerText')
+                location0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[1]/tbody/tr/td/div[' # noqa
+                    f'2]/div').get_attribute('innerText')
                 self.location.append(location0)
 
-                date0 = job.find_element(By.XPATH,
-                                        f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,'
-                                        f'"cardOutline")]/div[1]/div/div[1]/div/table[2]/tbody/tr[2]/td/div[1]/span['
-                                        f'1]').text
+                date0 = job.find_element(
+                    By.XPATH,
+                    f'//*[@id="mosaic-provider-jobcards"]/ul/li[{n}]/div[contains(@class,' # noqa
+                    f'"cardOutline")]/div[1]/div/div[1]/div/table[2]/tbody/tr[2]/td/div[1]/span[' # noqa
+                    f'1]').text
                 self.date.append(date0)
-
 
             except Exception as e:
                 logger.error(f"Error getting job {n} details: {e}")
@@ -191,10 +196,15 @@ class IndeedScraper(SiteScraper, CassandraIO):
 
                 try:
                     # Get job description
-                    job_description = wd.find_element(By.CLASS_NAME, "jobsearch-jobDescriptionText").get_attribute(
-                        'innerText')
+                    job_description = wd.find_element(
+                        By.CLASS_NAME,
+                        "jobsearch-jobDescriptionText"
+                    ).get_attribute(
+                        'innerText'
+                    )
                     self.job_desc.append(job_description)
-                except:
+                except Exception as e:
+                    logger.error(f"Error getting job description: {e}")
                     self.job_desc.append('NA')
 
                 # Seniority level
@@ -204,14 +214,18 @@ class IndeedScraper(SiteScraper, CassandraIO):
                 # Employment type
                 selectors = [
                     ".css-1p3gyjy > div:nth-child(1) > div:nth-child(1)",
-                    "div.css-1p3gyjy:nth-child(1) > div:nth-child(1) > div:nth-child(1)",
+                    "div.css-1p3gyjy:nth-child(1) > div:nth-child(1) > div:nth-child(1)", # noqa
                     ".css-tvvxwd"
                 ]
                 employment_type = 'NA'
-                # Loop through the selectors and try to find the employment type
+                # Loop through the selectors and
+                # try to find the employment type
                 for selector in selectors:
                     try:
-                        employment_type = wd.find_element(By.CSS_SELECTOR, selector).get_attribute('innerText')
+                        employment_type = wd.find_element(
+                            By.CSS_SELECTOR,
+                            selector
+                        ).get_attribute('innerText')
                         break  # If found, exit the loop
                     except NoSuchElementException:
                         continue  # If not found, try the next selector
@@ -236,7 +250,7 @@ class IndeedScraper(SiteScraper, CassandraIO):
                 self.ind.append("NA")
 
     @staticmethod
-    def generate_uuid(job_link: str) -> str:
+    def generate_uuid(job_link: str) -> UUID:
         hex_string = hashlib.md5(job_link.encode("UTF-8")).hexdigest()
         return UUID(hex=hex_string)
 
@@ -282,10 +296,10 @@ class IndeedScraper(SiteScraper, CassandraIO):
 
 class LinkedinScraper(IndeedScraper):
     def __init__(self, driver_path: str = "/usr/local/bin/geckodriver",
-                 url: str = "https://www.linkedin.com/jobs/search?"\
-                            "keywords=&location=Nigeria&geoId="\
-                            "105365761&trk=public_jobs_jobs-search-bar_search-submit"\
-                            "&position=1&pageNum=0",
+                 url: str = f"https://www.linkedin.com/jobs/search?" # noqa
+                            f"keywords=&location=Nigeria&geoId="
+                            f"105365761&trk=public_jobs_jobs-search-bar_search-submit" # noqa
+                            f"&position=1&pageNum=0",
                  num_jobs: int = 25):
         super().__init__(driver_path, url, num_jobs)
 
@@ -297,17 +311,25 @@ class LinkedinScraper(IndeedScraper):
         # Retrieve jobs on page
         i = 2
         while i <= int(self.num_jobs / 25) + 1:
-            wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            wd.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);"
+            )
             i = i + 1
             try:
-                wd.find_element("xpath", '/html/body/main/div/section/button').click()
+                wd.find_element(
+                    "xpath",
+                    '/html/body/main/div/section/button'
+                ).click()
                 time.sleep(5)
             except NoSuchElementException:
                 pass
                 time.sleep(5)
 
         # Extract job details with Selenium
-        jobs_lists = wd.find_element(By.CLASS_NAME, "jobs-search__results-list")
+        jobs_lists = wd.find_element(
+            By.CLASS_NAME,
+            "jobs-search__results-list"
+        )
         jobs = jobs_lists.find_elements(By.TAG_NAME, "li")  # return a list
 
         # get jobs
@@ -325,11 +347,14 @@ class LinkedinScraper(IndeedScraper):
         for job in jobs:
             n += 1
             try:
-                job_link0 = job.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
-                
+                job_link0 = job.find_element(
+                    By.CSS_SELECTOR,
+                    'a'
+                ).get_attribute('href')
+
                 # check if job already exists
                 temp_uuid = self.generate_uuid(job_link0)
-                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists"
+                assert str(temp_uuid) not in self.uuids, f"Job {temp_uuid} already exists" # noqa
                 # continue if no assertion error
                 self.job_link.append(job_link0)
                 self.uuid.append(temp_uuid)
@@ -337,16 +362,28 @@ class LinkedinScraper(IndeedScraper):
                 job_id0 = str(job.get_attribute('data-id'))
                 self.job_id.append(job_id0)
 
-                job_title0 = job.find_element(By.CSS_SELECTOR, 'h3').get_attribute('innerText')
+                job_title0 = job.find_element(
+                    By.CSS_SELECTOR,
+                    'h3'
+                ).get_attribute('innerText')
                 self.job_title.append(job_title0)
 
-                company_name0 = job.find_element(By.CSS_SELECTOR, 'h4').get_attribute('innerText')
+                company_name0 = job.find_element(
+                    By.CSS_SELECTOR,
+                    'h4'
+                ).get_attribute('innerText')
                 self.company_name.append(company_name0)
 
-                location0 = job.find_element(By.CSS_SELECTOR, '[class="job-search-card__location"]').get_attribute('innerText')
+                location0 = job.find_element(
+                    By.CSS_SELECTOR,
+                    '[class="job-search-card__location"]'
+                ).get_attribute('innerText')
                 self.location.append(location0)
 
-                date0 = job.find_element(By.CSS_SELECTOR, "div>div>time").get_attribute('datetime')
+                date0 = job.find_element(
+                    By.CSS_SELECTOR,
+                    "div>div>time"
+                ).get_attribute('datetime')
                 self.date.append(date0)
             except Exception as e:
                 logger.error(f"Error getting job {n} details: {e}")
@@ -362,13 +399,18 @@ class LinkedinScraper(IndeedScraper):
                 job_page_html = bs(job_page, "html.parser")
 
                 # Get job description
-                job_description = job_page_html.findAll("div", {"class": "show-more-less-html__markup"})
+                job_description = job_page_html.findAll(
+                    "div",
+                    {"class": "show-more-less-html__markup"}
+                )
                 job_description = bs(job_description[0].text).text
                 self.job_desc.append(job_description)
 
                 # Get job details
-                job_details = job_page_html.findAll("span", {
-                    "class": "description__job-criteria-text description__job-criteria-text--criteria"})
+                job_details = job_page_html.findAll(
+                    "span",
+                    {"class": "description__job-criteria-text description__job-criteria-text--criteria"} # noqa
+                )
 
                 # Seniority level
                 seniority_level = bs(job_details[0].text).text
@@ -414,14 +456,17 @@ class JobbermanScraper(IndeedScraper):
             i = i + 1
             page = "?page=" + str(i)
             url = self.url + page
-            
-            
-            wd = self.driver
-             
+
             wd = self.driver
             wd.get(url)
-            jobs_lists = wd.find_element(By.XPATH, "/html/body/main/section/div[2]/div[2]/div[1]")
-            jobs = jobs_lists.find_elements(By.CLASS_NAME, "mx-5")  # return a list
+            jobs_lists = wd.find_element(
+                By.XPATH,
+                "/html/body/main/section/div[2]/div[2]/div[1]"
+            )
+            jobs = jobs_lists.find_elements(
+                By.CLASS_NAME,
+                "mx-5"
+            )  # return a list
 
             # get job cards
             self.get_jobs(jobs)
@@ -444,9 +489,13 @@ class JobbermanScraper(IndeedScraper):
             n += 1
             try:
                 if n < 5:
-                    job_link0 = job.find_element(By.XPATH,
-                                                f'/html/body/main/section/div[2]/div[2]/div[1]/div[{n}]/div[1]/div[2]/div/div[1]/a').get_attribute(
-                        'href')
+                    job_link0 = job.find_element(
+                        By.XPATH,
+                        f'/html/body/main/section/div[2]/div[2]/div[1]'
+                        f'/div[{n}]/div[1]/div[2]/div/div[1]/a'
+                    ).get_attribute(
+                        'href'
+                    )
 
                     # check if job already exists
                     temp_uuid = self.generate_uuid(job_link0)
