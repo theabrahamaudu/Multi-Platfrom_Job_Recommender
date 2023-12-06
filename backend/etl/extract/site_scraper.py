@@ -1,11 +1,16 @@
+import os
+import glob
 from abc import ABC, abstractmethod
 import hashlib
+import random
+import string
 from math import ceil
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import pandas as pd
+import yaml
 from bs4 import BeautifulSoup as bs
 from urllib.request import urlopen as uReq
 import time
@@ -13,6 +18,42 @@ import random as rand
 from uuid import UUID
 from etl.load.load_cassandra import CassandraIO, Job
 from src.utils.pipeline_log_config import pipeline as logger
+
+
+def generate_profile():
+
+    random_string = ''.join(
+        random.choice(
+            string.ascii_letters + string.digits
+        ) for _ in range(10)
+    )
+    profile = f'firefox -CreateProfile Selenium{random_string}'
+    os.system(
+        profile
+    )
+    time.sleep(2)
+    return profile[23:]
+
+
+def scrape_with_retry(SiteScraper):
+    try:
+        scraper = SiteScraper()
+        _ = scraper.scrape()
+        jobs_df = scraper.create_dataframe()
+        if len(jobs_df) == 0:
+            raise Exception("Ran into AuthWall")
+        scraper.update_database()
+
+    except Exception as e:
+        print(f"Error scraping {SiteScraper.__class__.__name__}: {e}")
+        new_profile = generate_profile()
+        print(f"New profile: {new_profile}")
+        print("Sleeping for 10 seconds...")
+        time.sleep(10)
+        scraper = SiteScraper(profile_name=new_profile)
+        _ = scraper.scrape()
+        _ = scraper.create_dataframe()
+        scraper.update_database()
 
 
 class SiteScraper(ABC):
@@ -48,18 +89,38 @@ class SiteScraper(ABC):
 class IndeedScraper(SiteScraper, CassandraIO):
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
+                 profile_name: str = "Selenium",
                  url: str = "https://ng.indeed.com/jobs?q=&l=Nigeria&from=searchOnHP&vjk=701c24acfea16b1d", # noqa
                  num_jobs: int = 25):
         logger.info(f"Initializing {self.__class__.__name__}")
         CassandraIO.__init__(self)
 
+        # load config yaml file
+        with open("./config/config.yaml", "r") as stream:
+            try:
+                self.config = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        # set selenium profile
+        self.deployment = self.config["deployment"]
+
+        if self.deployment is True:
+            self.profile_path =\
+                self.config["selenium"]["profile_path"]["docker"]
+        else:
+            self.profile_path =\
+                self.config["selenium"]["profile_path"]["local"]
+
         logger.info("Setting up webdriver")
         try:
             # Configure Selenium
             options = Options()
-            # options.add_argument("--headless")
+            options.add_argument("--headless")
             options.add_argument("-profile")
-            options.add_argument("/home/abraham-pc/snap/firefox/common/.cache/mozilla/firefox/9y04dc5p.Selenium") # noqa
+            options.add_argument(glob.glob(os.path.expanduser(
+                f"{self.profile_path}*.{profile_name}"
+                ))[0])  # get profile
             self.driver_path = driver_path
             self.driver = webdriver.Firefox(options=options)
             logger.info("webdriver setup successful")
@@ -296,47 +357,52 @@ class IndeedScraper(SiteScraper, CassandraIO):
 
 class LinkedinScraper(IndeedScraper):
     def __init__(self, driver_path: str = "/usr/local/bin/geckodriver",
-                 url: str = f"https://www.linkedin.com/jobs/search?" # noqa
-                            f"keywords=&location=Nigeria&geoId="
-                            f"105365761&trk=public_jobs_jobs-search-bar_search-submit" # noqa
-                            f"&position=1&pageNum=0",
+                 profile_name: str = "Selenium",
+                 url: str = str("https://www.linkedin.com/jobs/search?" + # noqa
+                                "keywords=&location=Nigeria&geoId=" +
+                                "105365761&trk=public_jobs_jobs-search-bar_search-submit" + # noqa
+                                "&position=1&pageNum=0"),
                  num_jobs: int = 25):
-        super().__init__(driver_path, url, num_jobs)
+        super().__init__(driver_path, profile_name, url, num_jobs)
 
     def scrape(self):
-        # Load page
         wd = self.driver
-        wd.get(self.url)
+        try:
+            # Load page
+            wd.get(self.url)
 
-        # Retrieve jobs on page
-        i = 2
-        while i <= int(self.num_jobs / 25) + 1:
-            wd.execute_script(
-                "window.scrollTo(0, document.body.scrollHeight);"
+            # Retrieve jobs on page
+            i = 2
+            while i <= int(self.num_jobs / 25) + 1:
+                wd.execute_script(
+                    "window.scrollTo(0, document.body.scrollHeight);"
+                )
+                i = i + 1
+                try:
+                    wd.find_element(
+                        "xpath",
+                        '/html/body/main/div/section/button'
+                    ).click()
+                    time.sleep(5)
+                except NoSuchElementException:
+                    pass
+                    time.sleep(5)
+
+            # Extract job details with Selenium
+            jobs_lists = wd.find_element(
+                By.CLASS_NAME,
+                "jobs-search__results-list"
             )
-            i = i + 1
-            try:
-                wd.find_element(
-                    "xpath",
-                    '/html/body/main/div/section/button'
-                ).click()
-                time.sleep(5)
-            except NoSuchElementException:
-                pass
-                time.sleep(5)
+            jobs = jobs_lists.find_elements(By.TAG_NAME, "li")  # return a list
 
-        # Extract job details with Selenium
-        jobs_lists = wd.find_element(
-            By.CLASS_NAME,
-            "jobs-search__results-list"
-        )
-        jobs = jobs_lists.find_elements(By.TAG_NAME, "li")  # return a list
-
-        # get jobs
-        self.get_jobs(jobs)
-        # get job details
-        self.get_job_details(self.job_link)
-        wd.close()
+            # get jobs
+            self.get_jobs(jobs)
+            # get job details
+            self.get_job_details(self.job_link)
+            wd.close()
+        except Exception as e:
+            logger.error(f"Error scraping LinkedIn: {e}")
+            wd.close()
 
     def get_jobs(self, jobs: list):
         # get existing job UUIDs
@@ -444,9 +510,10 @@ class LinkedinScraper(IndeedScraper):
 class JobbermanScraper(IndeedScraper):
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
+                 profile_name: str = "Selenium",
                  url: str = "https://www.jobberman.com/jobs",
                  num_jobs: int = 25):
-        super().__init__(driver_path, url, num_jobs)
+        super().__init__(driver_path, profile_name, url, num_jobs)
 
     def scrape(self):
         logger.info(f"Scraping {self.num_jobs} jobs from Jobberman")

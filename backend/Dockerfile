@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y firefox-esr
 RUN wget -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz
 RUN tar -C /usr/local/bin/ -zxvf /tmp/geckodriver.tar.gz
 RUN chmod +x /usr/local/bin/geckodriver
+# Create a profile for Selenium
+RUN firefox -CreateProfile Selenium
 
 # Copy the application code
 COPY . .

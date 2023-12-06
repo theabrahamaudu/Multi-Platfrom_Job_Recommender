@@ -16,3 +16,10 @@ database:
     port: "8500"
     username: "admin"
     collection: "jobs"
+
+selenium:
+  profile_path:
+    local: /home/abraham-pc/snap/firefox/common/.mozilla/firefox/
+    docker: /root/.mozilla/firefox/
+
+deployment: False
