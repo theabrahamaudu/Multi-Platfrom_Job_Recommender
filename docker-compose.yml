@@ -1,16 +1,16 @@
 version: '3.5'
 services:
-# ## Backend
-#   backend:
-#     build: ./backend
-#     ports:
-#       - 28000:28000
-#     volumes:
-#       - ./backend:/app
-#     container_name: backend
-#     depends_on:
-#       - cassandra
-#       - chroma
+## Backend
+  backend:
+    build: ./backend
+    ports:
+      - 28000:28000
+    volumes:
+      - ./backend:/app
+    container_name: backend
+    depends_on:
+      - cassandra
+      - chroma
 
 ## Frontend
   frontend:
