@@ -56,3 +56,7 @@ services:
     ports:
       - 8500:8000
     command: 
+
+## Run with this command to use cache for pip install due to 
+## large packages and network connectivity issues
+## >>> COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose up -d

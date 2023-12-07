@@ -10,7 +10,10 @@ COPY setup.py .
 
 # Upgrade pip and install required Python packages
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+## This approach uses cache to save each package installation
+## so no need to restart pip install every time it fails during 
+## initial build
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt 
 
 # Install Firefox and GeckoDriver for Selenium
 RUN apt-get update && apt-get install -y firefox-esr
