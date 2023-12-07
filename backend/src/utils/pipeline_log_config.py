@@ -16,7 +16,9 @@ def logger_pipeline() -> Logger:
     pipeline_logger = logging.getLogger(__name__)
     pipeline_logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s:%(filename)s:%(funcName)s:%(levelname)s:%(message)s:')
+    formatter = logging.Formatter(
+        '%(asctime)s:%(filename)s:%(funcName)s:%(levelname)s:%(message)s:'
+    )
 
     pipeline_file_handler = logging.FileHandler('./logs/pipeline.log')
     pipeline_file_handler.setLevel(logging.DEBUG)
