@@ -99,7 +99,9 @@ class CassandraIO:
     def write_jobs(self, jobs: list[Job]):
         # write new jobs
         logger.info(f"Writing {len(jobs)} new jobs")
+        n = 0
         for job in jobs:
+            n += 1
             try:
                 JobListings.objects.if_not_exists().create(
                     uuid=str(job.uuid),
@@ -119,7 +121,7 @@ class CassandraIO:
                     ind=job.ind
                 )
             except Exception as e:
-                logger.error(f"Error writing jobs: {e}")
+                logger.error(f"Error writing job {n} -- {job.job_id}: {e}")
 
     def scrub_jobs(self):
         """
@@ -165,16 +167,22 @@ class CassandraIO:
         # jobs that are more than 30 days old to list
         old_jobs = []
         for uuid, scrape_date in zip(self.uuids, self.scrape_dates):
-            if datetime.today() - scrape_date >= 30:
+            if (datetime.today() - scrape_date).days >= 30:
                 old_jobs.append(uuid)
-        logger.info(f"Found {len(old_jobs)} jobs more than 30 days old")
 
         # delete old jobs
-        for uuid in old_jobs:
-            try:
-                JobListings.objects(uuid=uuid).if_exists().delete()
-                logger.info(
-                    f"Deleted {len(old_jobs)} old jobs from `job_listings`"
-                )
-            except Exception as e:
-                logger.error(f"Error deleting jobs: {e}")
+        if len(old_jobs) > 0:
+            logger.info(f"Found {len(old_jobs)} jobs more than 30 days old")
+            # loop through and delete jobs by UUID
+            for uuid in old_jobs:
+                try:
+                    JobListings.objects(uuid=uuid).if_exists().delete()
+                    logger.info(
+                        f"Deleted {len(old_jobs)} old jobs from `job_listings`"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error deleting jobs from `job_listings`: {e}"
+                    )
+        else:
+            logger.info("No old jobs found")

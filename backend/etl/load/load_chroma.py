@@ -158,9 +158,23 @@ class ChromaIO(CassandraIO):
         # get jobs older than 30 days
         old_jobs = []
         for uuid, scrape_date in zip(self.uuids, self.scrape_dates):
-            if datetime.today() - scrape_date >= 30:
+            if (datetime.today() - scrape_date).days >= 30:
                 old_jobs.append(uuid)
-        # delete embeddings for jobs older than 30 days
-        self.jobs_table.delete(
-            ids=old_jobs
-        )
+
+        if len(old_jobs) > 0:
+            logger.info(
+                f"Found {len(old_jobs)} job embeddings more than 30 days old"
+            )
+            # delete embeddings for jobs older than 30 days
+            try:
+                # pass list of uuids for deletion
+                self.jobs_table.delete(
+                    ids=old_jobs
+                )
+                logger.info(
+                    f"Deleted {len(old_jobs)} old job embeddings from vector table"  # noqa
+                )
+            except Exception as e:
+                logger.error(f"Error deleting jobs from vector table: {e}")
+        else:
+            logger.info("No old job embeddings found")

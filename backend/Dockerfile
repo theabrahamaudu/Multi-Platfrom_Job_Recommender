@@ -33,8 +33,15 @@ COPY . .
 RUN python etl/databases/cassandra/setup_db.py
 RUN python etl/databases/chroma/setup_db.py
 
+# Add cron and cron job file
+RUN apt-get update && apt-get install -y cron
+COPY cronjob /etc/cron.d/cronjob
+RUN chmod 0644 /etc/cron.d/cronjob
+RUN crontab /etc/cron.d/cronjob
+RUN touch /var/log/cron.log
+
 # Set the command to run the application
-CMD ["python", "app.py"]
+CMD service cron start && python app.py
 
 # Expose the necessary port(s)
 EXPOSE 28000

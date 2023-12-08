@@ -146,6 +146,21 @@ class SiteScraper(ABC):
 
 
 class IndeedScraper(SiteScraper, CassandraIO):
+    """
+    A class for scraping job listings from Indeed, based on
+    the SiteScraper abstract base class and CassandraIO class.
+
+    Args:
+    - driver_path (str): The path to the geckodriver executable.
+    - profile_name (str): The name of the Selenium profile to use.
+    - url (str): The URL of the Indeed job search page with default
+      parameters for location and keywords.
+    - num_jobs (int): The number of job listings to retrieve.
+
+    This class initializes a scraper for Indeed job listings with default
+    parameters for the search URL, driver path, profile name, and the number
+    of jobs to retrieve.
+    """
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
                  profile_name: str = "Selenium",

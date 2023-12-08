@@ -1,0 +1,2 @@
+# Scrape jobs every day at 2 AM
+0 2 * * * root /usr/local/bin/python /app/pipelines/scrape_jobs.py
