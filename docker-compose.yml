@@ -7,6 +7,9 @@ services:
       - 28000:28000
     volumes:
       - ./backend:/app
+    environment:
+      - MOZ_HEADLESS=1
+      - DISPLAY=localhost:0.0
     container_name: backend
     depends_on:
       - cassandra

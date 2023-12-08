@@ -12,12 +12,14 @@ def logger_backend() -> Logger:
 
     Returns:
         Logger: Logger for model server side
-    """    
-    
+    """
+
     backend_logger = logging.getLogger(__name__)
     backend_logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s:%(filename)s:%(funcName)s:%(levelname)s:%(message)s:')
+    formatter = logging.Formatter(
+        '%(asctime)s:%(filename)s:%(funcName)s:%(levelname)s:%(message)s:'
+    )
 
     backend_file_handler = logging.FileHandler('./logs/backend.log')
     backend_file_handler.setLevel(logging.DEBUG)
