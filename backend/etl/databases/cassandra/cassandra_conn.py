@@ -1,3 +1,8 @@
+"""
+This module manages connections and configuration for interacting
+with a Cassandra database.
+"""
+
 import os
 import dotenv
 import yaml
