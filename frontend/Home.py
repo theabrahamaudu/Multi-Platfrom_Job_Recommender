@@ -8,11 +8,17 @@ from src.utils.page_styling import (
     refresh
 )
 from src.utils.frontend_log_config import frontend as logger
-from src.utils.config import test_server
+from src.utils.config import (
+    test_server, deployment_server, admin_username, admin_password,
+    deployment
+)
 
 
 # server url
-server = test_server
+if deployment is True:
+    server = deployment_server
+else:
+    server = test_server
 
 # page config
 st.set_page_config(
@@ -26,6 +32,9 @@ form_bg('./assets/form_bg.jpg')
 
 
 # session state variables
+if "admin" not in st.session_state:
+    st.session_state["admin"] = None
+
 if "user" not in st.session_state:
     st.session_state["user"] = None
 # temporary user data to store changes temporarily
@@ -58,33 +67,76 @@ if st.session_state.get("user") is None:
         given_pword = hash_password(password)
 
         if submitted:
-            try:
-                user = requests.get(server+f"/users/login/{username}",
-                                    json={"username": f"{username}"})
+            if username == admin_username and given_pword == admin_password:
+                st.session_state["admin"] = True
 
-                if user.status_code == 200:
-                    user = user.json()
-                    actual_pword = user["password"]
-                    if given_pword == actual_pword:
-                        st.session_state["user"] = user
-                        st.session_state["temp_user"] = deepcopy(user)
-                        st.success("Login Successful! 😀")
-                        refresh()
+            else:
+                try:
+                    user = requests.get(server+f"/users/login/{username}",
+                                        json={"username": f"{username}"})
+
+                    if user.status_code == 200:
+                        user = user.json()
+                        actual_pword = user["password"]
+                        if given_pword == actual_pword:
+                            st.session_state["user"] = user
+                            st.session_state["temp_user"] = deepcopy(user)
+                            st.success("Login Successful! 😀")
+                            refresh()
+                        else:
+                            st.error("Incorrect Password, kinda sus 🧐")
                     else:
-                        st.error("Incorrect Password, kinda sus 🧐")
+                        st.error("Sure you have an account?\
+                                    Cuz we couldn't find it 🤷‍♀️.\n\
+                                    Check your **username** and try again,\
+                                    or just sign up 😏.")
+                except requests.RequestException as e:
+                    logger.error(
+                        "Unable to connect to the server: %s", e, exc_info=True
+                    )
+                    st.error(
+                        "Oops! We were unable to connect to the server.\
+                            Please try again 😬"
+                    )
+
+    # Admin options
+    if st.session_state.get("admin") is True:
+        with st.form("Admin"):
+            st.success("Welcome back, Admin. 🙂")
+            st.subheader("Setup Database")
+            setup_databse = st.form_submit_button(
+                "Setup Database",
+                type="primary")
+            
+            if setup_databse:
+                cassandra_msg = requests.get(server+"/cassandra")
+                if cassandra_msg.status_code == 200:
+                    st.success("Cassandra database setup successful!")
                 else:
-                    st.error("Sure you have an account?\
-                                Cuz we couldn't find it 🤷‍♀️.\n\
-                                Check your **username** and try again,\
-                                or just sign up 😏.")
-            except requests.RequestException as e:
-                logger.error(
-                    "Unable to connect to the server: %s", e, exc_info=True
-                )
-                st.error(
-                    "Oops! We were unable to connect to the server.\
-                        Please try again 😬"
-                )
+                    st.warning(cassandra_msg.json()["message"])
+                chroma_msg = requests.get(server+"/chroma")
+                if chroma_msg.status_code == 200:
+                    st.success("Chroma database setup successful!")
+                else:
+                    st.warning(chroma_msg.json()["message"])
+
+        with st.container():
+            st.subheader("Statistics")
+            user_count = requests.get(server+"/user_count")
+            if user_count.status_code == 200:
+                st.info(f'Number of users: {user_count.json()["count"]}')
+            else:
+                st.warning(user_count.json()["message"])
+            job_count = requests.get(server+"/job_count")
+            if job_count.status_code == 200:
+                st.info(f'Number of jobs: {job_count.json()["count"]}')
+            else:
+                st.warning(job_count.json()["message"])
+
+        if st.button("**Exit Admin**", type="primary"):
+            for key in st.session_state.keys():
+                del st.session_state[key]
+            refresh(time=0)
     # Prompt to create new account
     st.subheader(italics("TBH, I'm new here..."))
 

@@ -1,7 +1,12 @@
 database:
   cassandra:
     host: cassandra
-    port: 29042
+    port: 
+      local: 29042
+      docker: 9042
+    contact_points:
+      local: ["127.0.0.1"]
+      docker: ["cassandra"]
     username: cassandra
     keyspace: recommender
     session_name: recommender
@@ -12,8 +17,12 @@ database:
       clicks: clicks_metadata
 
   chroma:
-    host: "localhost"
-    port: "8500"
+    host: 
+      local: "localhost"
+      docker: "chroma"
+    port: 
+      local: "8500"
+      docker: "8000"
     username: "admin"
     collection: "jobs"
 
@@ -22,4 +31,4 @@ selenium:
     local: /home/abraham-pc/snap/firefox/common/.mozilla/firefox/
     docker: /root/.mozilla/firefox/
 
-deployment: False
+deployment: True

@@ -67,15 +67,28 @@ class CassandraConn:
         self.username = self.config["database"]["cassandra"]["username"]
         self.password = os.getenv('CASSANDRA_PASSWORD')
         self.host = self.config["database"]["cassandra"]["host"]
-        self.port = self.config["database"]["cassandra"]["port"]
         self.session_name =\
             self.config["database"]["cassandra"]["session_name"]
         self.keyspace_name =\
             self.config["database"]["cassandra"]["keyspace"]
 
+        # set contact points and port
+        deployment = self.config["deployment"]
+        if deployment is True:
+            self.contact_points =\
+                self.config["database"]["cassandra"]["contact_points"]["docker"]  # noqa E501
+            self.port =\
+                self.config["database"]["cassandra"]["port"]["docker"]
+        else:
+            self.contact_points =\
+                self.config["database"]["cassandra"]["contact_points"]["local"]
+            self.port =\
+                self.config["database"]["cassandra"]["port"]["local"]
+
         # connect to cassandra
         try:
             self.cluster = Cluster(
+                contact_points=self.contact_points,
                 port=self.port,
                 auth_provider=PlainTextAuthProvider(
                     username=self.username,

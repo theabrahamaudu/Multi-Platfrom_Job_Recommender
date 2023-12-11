@@ -26,19 +26,15 @@ RUN apt-get update && apt-get install -y firefox-esr
 # Create a profile for Selenium
 RUN firefox -CreateProfile Selenium -headless
 
-# Copy the application code
-COPY . .
-
-# Initialize the databases
-RUN python etl/databases/cassandra/setup_db.py
-RUN python etl/databases/chroma/setup_db.py
-
 # Add cron and cron job file
 RUN apt-get update && apt-get install -y cron
 COPY cronjob /etc/cron.d/cronjob
 RUN chmod 0644 /etc/cron.d/cronjob
 RUN crontab /etc/cron.d/cronjob
 RUN touch /var/log/cron.log
+
+# Copy the application code
+COPY . .
 
 # Set the command to run the application
 CMD service cron start && python app.py

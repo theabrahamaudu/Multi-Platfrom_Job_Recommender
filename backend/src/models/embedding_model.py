@@ -1,4 +1,6 @@
 from sentence_transformers import SentenceTransformer
 
 
-model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+model = SentenceTransformer(
+    './models/sentence-transformers/all-mpnet-base-v2'
+)

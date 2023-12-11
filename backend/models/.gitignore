@@ -1,0 +1,4 @@
+sentence*
+
+# Download and unzip `sentence-transformers/all-mpnet-base-v2` model into this
+# directory from https://sbert.net/models if you want to rebuild from github repo

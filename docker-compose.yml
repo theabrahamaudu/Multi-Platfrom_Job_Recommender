@@ -14,6 +14,8 @@ services:
     depends_on:
       - cassandra
       - chroma
+    networks:
+      - network
 
 ## Frontend
   frontend:
@@ -23,8 +25,10 @@ services:
     volumes:
       - ./frontend:/app
     container_name: frontend
-    # depends_on:
-    #   - backend
+    depends_on:
+      - backend
+    networks:
+      - network
 
 ## Cassandra DB
   cassandra:
@@ -44,6 +48,8 @@ services:
       - CASSANDRA_PASSWORD_SEEDER=yes
       - CASSANDRA_PASSWORD=cassandra
     container_name: cassandra
+    networks:
+      - network
 
   ## ChromaDB
   chroma:
@@ -59,6 +65,12 @@ services:
     ports:
       - 8500:8000
     command: 
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
 
 ## Run with this command to use cache for pip install due to 
 ## large packages and network connectivity issues

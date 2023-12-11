@@ -41,10 +41,21 @@ class ChromaConn:
         # set credentials
         self.username = self.config["database"]["chroma"]["username"]
         self.password = str(os.getenv('CHROMA_PASSWORD'))
-        self.host = self.config["database"]["chroma"]["host"]
-        self.port = self.config["database"]["chroma"]["port"]
         self.collection_name =\
             self.config["database"]["chroma"]["collection"]
+
+        # set hostname and port
+        deployment = self.config["deployment"]
+        if deployment is True:
+            self.host =\
+                self.config["database"]["chroma"]["host"]["docker"]
+            self.port =\
+                self.config["database"]["chroma"]["port"]["docker"]
+        else:
+            self.host =\
+                self.config["database"]["chroma"]["host"]["local"]
+            self.port =\
+                self.config["database"]["chroma"]["port"]["local"]
 
         # set embedding function
         self.embedding_function = Embed()
