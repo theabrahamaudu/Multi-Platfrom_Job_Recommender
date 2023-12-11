@@ -44,8 +44,8 @@ async def search_index(query: str, user_id: UUID):
                     f"User ID: {user_id}")
         # parse and return results
         return results["ids"][0]
-    except AttributeError:
-        logger.warning("Chroma index not loaded")
+    except Exception as e:
+        logger.warning(f"Chroma index not loaded: {e}")
         logger.info("Reloading Chroma index")
         table = conn.session.get_collection(
             name=conn.collection_name,
