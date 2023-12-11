@@ -10,11 +10,7 @@ from src.utils.page_styling import (
     refresh
 )
 from src.utils.frontend_log_config import frontend as logger
-from src.utils.config import test_server
-
-
-# server url
-server = test_server
+from src.utils.config import server
 
 # page config
 st.set_page_config(

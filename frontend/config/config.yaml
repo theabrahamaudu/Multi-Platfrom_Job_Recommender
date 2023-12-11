@@ -1,6 +1,6 @@
 server:
   local: http://localhost:28000
-  docker: backend:28000
+  docker: http://backend:28000
 
 admin:
   username: admin

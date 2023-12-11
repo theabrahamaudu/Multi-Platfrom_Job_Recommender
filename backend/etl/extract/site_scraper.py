@@ -684,7 +684,7 @@ class LinkedinScraper(IndeedScraper):
                 job_link0 = job.find_element(
                     By.CSS_SELECTOR,
                     'a'
-                ).get_attribute('href')
+                ).get_attribute('href').split(sep="?refId=")[0]
 
                 # check if job already exists by comparing hashed link
                 # to list of hashed links from the database and raise

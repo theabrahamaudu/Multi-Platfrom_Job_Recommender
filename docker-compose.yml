@@ -12,8 +12,10 @@ services:
       - DISPLAY=localhost:0.0
     container_name: backend
     depends_on:
-      - cassandra
-      - chroma
+      cassandra:
+        condition: service_healthy
+      chroma:
+        condition: service_started
     networks:
       - network
 
@@ -39,7 +41,7 @@ services:
     volumes:
       - './databases/cassandra_db:/bitnami'
     healthcheck:
-      test: [ "CMD", "/opt/bitnami/cassandra/bin/cqlsh", "-u cassandra", "-p cassandra" ,"-e \"describe keyspaces\"" ]
+      test: ["CMD-SHELL", "cqlsh --username=cassandra --password=cassandra --execute='DESCRIBE KEYSPACES;'"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -48,6 +50,7 @@ services:
       - CASSANDRA_PASSWORD_SEEDER=yes
       - CASSANDRA_PASSWORD=cassandra
     container_name: cassandra
+    restart: on-failure
     networks:
       - network
 

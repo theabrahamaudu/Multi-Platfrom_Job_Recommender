@@ -13,3 +13,9 @@ admin_username = config["admin"]["username"]
 admin_password = config["admin"]["hash"]
 
 deployment = config["deployment"]
+
+# server url
+if deployment is True:
+    server = deployment_server
+else:
+    server = test_server

@@ -9,16 +9,8 @@ from src.utils.page_styling import (
 )
 from src.utils.frontend_log_config import frontend as logger
 from src.utils.config import (
-    test_server, deployment_server, admin_username, admin_password,
-    deployment
+    server, admin_username, admin_password,
 )
-
-
-# server url
-if deployment is True:
-    server = deployment_server
-else:
-    server = test_server
 
 # page config
 st.set_page_config(
@@ -56,9 +48,10 @@ st.title("Multi-Platform Job Recommender")
 
 
 # login form
-if st.session_state.get("user") is None:
-    st.subheader(color(bold_italics("Not your first rodeo? Login to continue..."),
-             "white"))
+if st.session_state.get("user") is None:  # noqa
+    st.subheader(color(
+        bold_italics("Not your first rodeo? Login to continue..."),
+        "white"))
     with st.form("Login"):
         username = st.text_input("**Username**")
         password = st.text_input("**Password**", type="password")
@@ -107,7 +100,7 @@ if st.session_state.get("user") is None:
             setup_databse = st.form_submit_button(
                 "Setup Database",
                 type="primary")
-            
+
             if setup_databse:
                 cassandra_msg = requests.get(server+"/cassandra")
                 if cassandra_msg.status_code == 200:
@@ -120,20 +113,39 @@ if st.session_state.get("user") is None:
                 else:
                     st.warning(chroma_msg.json()["message"])
 
-        with st.container():
-            st.subheader("Statistics")
-            user_count = requests.get(server+"/user_count")
-            if user_count.status_code == 200:
-                st.info(f'Number of users: {user_count.json()["count"]}')
-            else:
-                st.warning(user_count.json()["message"])
-            job_count = requests.get(server+"/job_count")
-            if job_count.status_code == 200:
-                st.info(f'Number of jobs: {job_count.json()["count"]}')
-            else:
-                st.warning(job_count.json()["message"])
+        with st.form("Scrape"):
+            st.subheader("Manually Scrape Jobs")
+            scrape = st.form_submit_button(
+                "Trigger Scrape",
+                type="primary"
+            )
+            if scrape:
+                scrape_msg = requests.get(server+"/scrape_jobs")
+                if scrape_msg.status_code == 200:
+                    st.success(
+                        "Scraper running. Do not click " +
+                        "again for 30 minutes. 🙂")
+                else:
+                    st.warning(scrape_msg.json()["message"])
 
-        if st.button("**Exit Admin**", type="primary"):
+        with st.form("Statistics"):
+            st.subheader("Statistics")
+            stats = st.form_submit_button(
+                "**Get Stats**", type="primary"
+            )
+            if stats:
+                user_count = requests.get(server+"/user_count")
+                if user_count.status_code == 200:
+                    st.info(f'Number of users: {user_count.json()["count"]}')
+                else:
+                    st.warning(user_count.json()["message"])
+                job_count = requests.get(server+"/job_count")
+                if job_count.status_code == 200:
+                    st.info(f'Number of jobs: {job_count.json()["count"]}')
+                else:
+                    st.warning(job_count.json()["message"])
+
+        if st.button("**Exit Admin**"):
             for key in st.session_state.keys():
                 del st.session_state[key]
             refresh(time=0)
@@ -146,14 +158,14 @@ if st.session_state.get("user") is None:
 else:
     # After loging in
     user = st.session_state.get("user")
-    st.subheader(f"Welcome, {user['first_name'].capitalize()}!")
+    st.subheader(f"Welcome, {user['first_name'].capitalize()}!")  # type: ignore  # noqa
 
     with st.sidebar:
         if st.button("Logout", type="primary"):
             for key in st.session_state.keys():
                 del st.session_state[key]
             refresh()
-    
+
     # Quick search
     search, profile = st.columns([1, 1], gap="large")
     with search.form("Quick Search"):
@@ -169,20 +181,21 @@ else:
     # Profile shortcut/reminder
     with profile.form("Profile"):
         to_update = []
-        if st.session_state.get("user")["skills"] == []:
+        if st.session_state.get("user")["skills"] == []:  # type: ignore
             to_update.append("Skills")
-        if st.session_state.get("user")["work_history"] == []:
+        if st.session_state.get("user")["work_history"] == []:  # type: ignore
             to_update.append("Work History")
-        if st.session_state.get("user")["preferences"] == {}:
+        if st.session_state.get("user")["preferences"] == {}:  # type: ignore
             to_update.append("Preferences")
-        
+
         if len(to_update) > 0:
             st.subheader(bold("Pssst! This is important  🤧"))
 
         if len(to_update) > 2:
             st.warning(
                 f"We want to help, but you need to work with us.\
-                  Update your **{', '.join(to_update[:-1])}** and **{to_update[-1]}**\
+                  Update your **{', '.join(to_update[:-1])}** and\
+                  **{to_update[-1]}**\
                   to get better recommedations."
             )
         elif len(to_update) == 2:
@@ -205,7 +218,7 @@ else:
                 switch_page("Profile")
 
 # signup form
-if st.session_state.get("signup"):
+if st.session_state.get("signup"):  # noqa
     with st.form("Signup"):
         st.warning("We know you might want to get creative, but\
                     choose your **username** wisely, because you can't change\
@@ -214,8 +227,10 @@ if st.session_state.get("signup"):
         username = st.text_input(bold("Username"),
                                  placeholder="Anything but 'dig_bick2023'")
         if username == 'dig_bick2023':
-            st.write(color("    Listen here you little s***, **_dig_bick2023_** is reserved! 🤬",
-                           "red"))
+            st.write(color(
+                "Listen here you little s***," +
+                " **_dig_bick2023_** is reserved! 🤬",
+                "red"))
         # name
         first_name = st.text_input(bold("First Name"))
         last_name = st.text_input(bold("Last Name"))
@@ -239,7 +254,10 @@ if st.session_state.get("signup"):
                 validated = False
 
             if password != confirm_password:
-                st.write(color("    We know you're excited, but the passwords have to match... 🥶", "red"))
+                st.write(color(
+                    "We know you're excited, " +
+                    "but the passwords have to match... 🥶",
+                    "red"))
                 validated = False
 
             if username == 'dig_bick2023':
@@ -260,8 +278,8 @@ if st.session_state.get("signup"):
             if validated:
                 try:
                     user = requests.post(server+"/users/new", json={
-                        "user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder
-                        "created_at": "2023-11-30T22:16:56.836Z",  # placeholder 
+                        "user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder  # noqa
+                        "created_at": "2023-11-30T22:16:56.836Z",  # placeholder  # noqa
                         "username": username,
                         "first_name": first_name,
                         "last_name": last_name,
