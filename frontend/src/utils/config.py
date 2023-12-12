@@ -1,3 +1,7 @@
+"""
+This module contains config variables for frontend from `./config/config.yaml`
+"""
+
 import yaml
 
 
