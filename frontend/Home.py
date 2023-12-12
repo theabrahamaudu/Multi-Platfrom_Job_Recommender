@@ -1,3 +1,7 @@
+"""
+This module contains the code for the Home page.
+"""
+
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from copy import deepcopy
@@ -9,7 +13,7 @@ from src.utils.page_styling import (
 )
 from src.utils.frontend_log_config import frontend as logger
 from src.utils.config import (
-    server, admin_username, admin_password,
+    server, admin_username, admin_password
 )
 
 # page config
@@ -57,12 +61,15 @@ if st.session_state.get("user") is None:  # noqa
         password = st.text_input("**Password**", type="password")
         submitted = st.form_submit_button("**Login**", type="primary")
 
+        # hash user password for comparison with database
         given_pword = hash_password(password)
 
         if submitted:
+            # check if login is by admin and load admin view
             if username == admin_username and given_pword == admin_password:
                 st.session_state["admin"] = True
-
+                logger.info("Admin logged in")
+            # else, login as user
             else:
                 try:
                     user = requests.get(server+f"/users/login/{username}",
@@ -74,6 +81,7 @@ if st.session_state.get("user") is None:  # noqa
                         if given_pword == actual_pword:
                             st.session_state["user"] = user
                             st.session_state["temp_user"] = deepcopy(user)
+                            logger.info("User %s logged in", user.user_id)
                             st.success("Login Successful! 😀")
                             refresh()
                         else:
@@ -92,7 +100,8 @@ if st.session_state.get("user") is None:  # noqa
                             Please try again 😬"
                     )
 
-    # Admin options
+    # Admin View
+    # load admin view if admin session state is true
     if st.session_state.get("admin") is True:
         with st.form("Admin"):
             st.success("Welcome back, Admin. 🙂")
@@ -148,13 +157,17 @@ if st.session_state.get("user") is None:  # noqa
         if st.button("**Exit Admin**"):
             for key in st.session_state.keys():
                 del st.session_state[key]
+            logger.info("Admin logged out")
             refresh(time=0)
+
     # Prompt to create new account
     st.subheader(italics("TBH, I'm new here..."))
 
+    # signup button which sets 'signup' session state to true
     if st.button("**Create Account**"):
         st.session_state["signup"] = True
 
+# load user home page if user is logged in
 else:
     # After loging in
     user = st.session_state.get("user")
@@ -164,6 +177,7 @@ else:
         if st.button("Logout", type="primary"):
             for key in st.session_state.keys():
                 del st.session_state[key]
+            logger.info("User %s logged out", user.user_id)  # type: ignore  # noqa
             refresh()
 
     # Quick search
@@ -178,8 +192,12 @@ else:
                 search_query = " "
             st.session_state["query"] = search_query
             switch_page("Search Jobs")
-    # Profile shortcut/reminder
+
+    # Profile shortcut/profile update reminder
     with profile.form("Profile"):
+        # check user data and prompt to update any missing fields
+
+        # populate list of missing fields
         to_update = []
         if st.session_state.get("user")["skills"] == []:  # type: ignore
             to_update.append("Skills")
@@ -188,6 +206,7 @@ else:
         if st.session_state.get("user")["preferences"] == {}:  # type: ignore
             to_update.append("Preferences")
 
+        # prompt the user based on the number of missing fields
         if len(to_update) > 0:
             st.subheader(bold("Pssst! This is important  🤧"))
 
@@ -210,6 +229,7 @@ else:
                   Update your **{to_update[0]}**\
                   to get better recommedations."
             )
+        # Dynamic profile section button based on number of miisng fields
         if len(to_update) > 0:
             if st.form_submit_button("Update Profile", type="primary"):
                 switch_page("Profile")
@@ -217,7 +237,8 @@ else:
             if st.form_submit_button("View Profile"):
                 switch_page("Profile")
 
-# signup form
+# signup form if user is not logged in
+# and the signup session state is true
 if st.session_state.get("signup"):  # noqa
     with st.form("Signup"):
         st.warning("We know you might want to get creative, but\
@@ -276,6 +297,7 @@ if st.session_state.get("signup"):  # noqa
                 st.write(color("Ha-ha-ha, name cannot be blank.", "red"))
 
             if validated:
+                # create new user on database
                 try:
                     user = requests.post(server+"/users/new", json={
                         "user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder  # noqa
@@ -290,6 +312,8 @@ if st.session_state.get("signup"):  # noqa
                         "preferences": {}
 
                     })
+                    # set session user data to new user and
+                    # refresh the page
                     if user.status_code == 200:
                         st.session_state["user"] = user.json()
                         st.success("Signup Successful! 🤟")
@@ -297,6 +321,7 @@ if st.session_state.get("signup"):  # noqa
                         refresh()
 
                     else:
+                        # return error message if creation fails
                         message = user.json()
                         st.error(message["message"])
                 except requests.RequestException as e:
@@ -308,8 +333,11 @@ if st.session_state.get("signup"):  # noqa
                             Please try again 😬"
                     )
             else:
+                # prompt the user if there are validation errors
                 st.error("Please fix the errors above.")
 
+    # set the signup session state to false
+    # if the user cancels
     if st.button("**Cancel**"):
         st.session_state["signup"] = False
         refresh(time=0)

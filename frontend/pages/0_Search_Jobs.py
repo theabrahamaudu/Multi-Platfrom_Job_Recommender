@@ -1,13 +1,13 @@
-from copy import deepcopy
+"""
+This module contains the code for the Job Search page.
+"""
+
 import streamlit as st
-from time import sleep
-from datetime import datetime
 import time
 from streamlit_extras.switch_page_button import switch_page
 import requests
-from src.utils.hasher import hash_password
 from src.utils.page_styling import (
-    page_bg, form_bg, bold, italics, bold_italics, color,
+    page_bg, form_bg, bold, bold_italics, color,
     refresh, open_link
 )
 from src.utils.frontend_log_config import frontend as logger
@@ -26,7 +26,7 @@ form_bg('./assets/form_bg.jpg')
 # # session state variables
 
 # Page content
-if st.session_state.get("user") is None:
+if st.session_state.get("user") is None:  # noqa
     st.subheader(color(bold_italics("Login to search jobs..."),
                        "white"))
 else:
@@ -35,6 +35,9 @@ else:
         if st.button("Logout", type="primary"):
             for key in st.session_state.keys():
                 del st.session_state[key]
+            logger.info(
+                "User %s logged out",
+                st.session_state.get("user").user_id)  # type: ignore
             switch_page("Home")
             refresh()
     with st.form("Search"):
@@ -64,13 +67,13 @@ else:
                 try:
                     payload = {
                         "query": " ",
-                        "user_id": f"{st.session_state.get('user')['user_id']}",
+                        "user_id": f"{st.session_state.get('user')['user_id']}"  # noqa # type: ignore
                     }
                     st.session_state["recommended_jobs"] = requests.get(
-                        f"{server}/index/search/{payload['user_id']}&&{payload['query']}",
+                        f"{server}/index/search/{payload['user_id']}&&{payload['query']}",  # noqa
                         json=payload
                     ).json()
-                    
+
                 except requests.RequestException as e:
                     logger.error(
                         "Unable to connect to the server: %s", e, exc_info=True
@@ -79,7 +82,7 @@ else:
                             We couldn't cook any recommendations for you.")
 
         if st.session_state.get("recommended_jobs") is not None:
-            for job_id in st.session_state.get("recommended_jobs")[:3]:
+            for job_id in st.session_state.get("recommended_jobs")[:3]:  # noqa # type: ignore
                 with st.container():
                     job = requests.get(
                         f"{server}/jobs/fetch/{job_id}",
@@ -89,7 +92,9 @@ else:
                     with st.form(str(job_id)):
                         st.write(
                             bold_italics(
-                                f"{job['job_title']} - {job['company_name']} - {job['location']}"
+                                f"{job['job_title']} - " +
+                                f"{job['company_name']} - " +
+                                f"{job['location']}"
                             ))
                         st.write(bold(f"Source: {job['source']}"))
                         with st.expander(bold("Job Description:")):
@@ -104,9 +109,9 @@ else:
                         if click:
                             # store user click metadata
                             click_metadata = {
-                                "user_id": f"{st.session_state.get('user')['user_id']}",
-                                "click_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder
-                                "click_timestamp": "2023-12-03T15:04:53.303Z",  # placeholder
+                                "user_id": f"{st.session_state.get('user')['user_id']}",  # noqa # type: ignore
+                                "click_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder # noqa
+                                "click_timestamp": "2023-12-03T15:04:53.303Z",  # placeholder # noqa
                                 "job_id": f"{job_id}"
                             }
                             requests.post(
@@ -126,10 +131,10 @@ else:
                     start = time.time()
                     payload = {
                         "query": f"{st.session_state.get('query')}",
-                        "user_id": f"{st.session_state.get('user')['user_id']}",
+                        "user_id": f"{st.session_state.get('user')['user_id']}",  # noqa  # type: ignore
                     }
                     st.session_state["search_results"] = requests.get(
-                        f"{server}/index/search/{payload['user_id']}&&{payload['query']}",
+                        f"{server}/index/search/{payload['user_id']}&&{payload['query']}",  # noqa
                         json=payload
                     ).json()
                     elapsed = time.time() - start
@@ -137,17 +142,20 @@ else:
 
                     # store search metadata
                     search_metadata = {
-                        "user_id": f"{st.session_state.get('user')['user_id']}",
-                        "search_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder
-                        "search_timestamp": "2023-12-04T09:19:28.925Z",  # placeholder
+                        "user_id": f"{st.session_state.get('user')['user_id']}",  # noqa  # type: ignore
+                        "search_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder # noqa
+                        "search_timestamp": "2023-12-04T09:19:28.925Z",  # placeholder # noqa
                         "search_query": f"{st.session_state.get('query')}",
-                        "search_results": st.session_state.get("search_results")
+                        "search_results": st.session_state.get("search_results")  # noqa
                     }
                     requests.post(
                         f"{server}/search/new",
                         json=search_metadata
                     )
-                    st.session_state["old_query"] = st.session_state.get("query")
+                    # hold old query so repeat search returns results
+                    # without new search on database
+                    st.session_state["old_query"] =\
+                        st.session_state.get("query")
                 except requests.RequestException as e:
                     logger.error(
                         "Unable to connect to the server: %s", e, exc_info=True
@@ -155,7 +163,7 @@ else:
                     st.warning("Oops! We were unable to connect to the server.\
                             Please try again 😬.")
 
-        for job_id in st.session_state.get("search_results"):
+        for job_id in st.session_state.get("search_results"):  # noqa  # type: ignore
             with st.container():
                 try:
                     job = requests.get(
@@ -166,7 +174,9 @@ else:
                     with st.form(str(job_id)):
                         st.write(
                             bold_italics(
-                                f"{job['job_title']} - {job['company_name']} - {job['location']}"
+                                f"{job['job_title']} - " +
+                                f"{job['company_name']} - " +
+                                f"{job['location']}"
                             ))
                         st.write(bold(f"Source: {job['source']}"))
                         with st.expander(bold("Job Description:")):
@@ -181,9 +191,9 @@ else:
                         if click:
                             # store user click metadata
                             click_metadata = {
-                                "user_id": f"{st.session_state.get('user')['user_id']}",
-                                "click_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder
-                                "click_timestamp": "2023-12-03T15:04:53.303Z",  # placeholder
+                                "user_id": f"{st.session_state.get('user')['user_id']}",  # noqa  # type: ignore
+                                "click_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # placeholder # noqa
+                                "click_timestamp": "2023-12-03T15:04:53.303Z",  # placeholder # noqa
                                 "job_id": f"{job_id}"
                             }
                             requests.post(

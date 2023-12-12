@@ -100,6 +100,7 @@ class ChromaIO(CassandraIO):
         # get list of jobs which have not been embedded yet
         to_push = [x for x in self.uuids if x not in self.vector_uuids]
         if len(to_push) > 0:
+            logger.info(f"Pushing {len(to_push)} jobs to vector table")
             # embed jobs in `to_push`
             uuid_list = []
             vector_list = []
@@ -115,7 +116,6 @@ class ChromaIO(CassandraIO):
                 uuid_list.append(job_vector.uuid)
                 vector_list.append(job_vector.embedding[0])
 
-            logger.info(f"Pushing {len(uuid_list)} jobs to vector table")
             try:
                 self.jobs_table.add(
                     ids=uuid_list,
