@@ -11,7 +11,11 @@ from src.utils.page_styling import (
     refresh, open_link
 )
 from src.utils.frontend_log_config import frontend as logger
-from src.utils.config import server
+from src.utils.config import LoadConfig
+
+# load config yaml file details
+config = LoadConfig()
+server = config.get_server()
 
 # page config
 st.set_page_config(

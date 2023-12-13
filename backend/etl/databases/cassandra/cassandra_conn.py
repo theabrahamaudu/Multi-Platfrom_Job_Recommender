@@ -6,7 +6,7 @@ with a Cassandra database.
 import os
 import dotenv
 import yaml
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, Session
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.metadata import Metadata
 from cassandra.cqlengine import connection
@@ -85,31 +85,6 @@ class CassandraConn:
             self.port =\
                 self.config["database"]["cassandra"]["port"]["local"]
 
-        # connect to cassandra
-        try:
-            self.cluster = Cluster(
-                contact_points=self.contact_points,
-                port=self.port,
-                auth_provider=PlainTextAuthProvider(
-                    username=self.username,
-                    password=self.password
-                )
-            )
-            self.session = self.cluster.connect(self.keyspace_name)
-
-            # set row factory
-            self.session.row_factory = dict_factory
-
-            # add conncection to connection registry
-            connection.set_session(self.session)
-            connection.register_connection(
-                self.session_name,
-                session=self.session,
-            )
-            logger.info("Cassandra connection established.")
-        except Exception as e:
-            logger.error("Error connecting to Cassandra: %s", e)
-
         # keyspace and tables setup
         self.keyspace_name =\
             self.config["database"]["cassandra"]["keyspace"]
@@ -121,6 +96,9 @@ class CassandraConn:
             self.config["database"]["cassandra"]["tables"]["search"]
         self.clicks_table =\
             self.config["database"]["cassandra"]["tables"]["clicks"]
+
+        # set session
+        self.session = self.get_session()
 
     def close_conn(self):
         """
@@ -136,3 +114,30 @@ class CassandraConn:
         - Metadata: Metadata related to the Cassandra connection.
         """
         return Metadata()
+
+    def get_session(self) -> Session:  # type: ignore
+        # connect to cassandra
+        try:
+            self.cluster = Cluster(
+                contact_points=self.contact_points,
+                port=self.port,
+                auth_provider=PlainTextAuthProvider(
+                    username=self.username,
+                    password=self.password
+                )
+            )
+            session = self.cluster.connect(self.keyspace_name)
+
+            # set row factory
+            session.row_factory = dict_factory
+
+            # add conncection to connection registry
+            connection.set_session(session)
+            connection.register_connection(
+                self.session_name,
+                session=session,
+            )
+            logger.info("Cassandra connection established")
+            return session
+        except Exception as e:
+            logger.error("Error connecting to Cassandra: %s", e)

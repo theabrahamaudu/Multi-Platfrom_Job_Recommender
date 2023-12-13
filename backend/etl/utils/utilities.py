@@ -85,8 +85,11 @@ def get_user_metadata(user_id: UUID, limit: int = 5, trunc: int = -1) -> str:
     # Searches
     previous_searches = get_user_searches(str(user_id), limit)
 
+    # Clicks
+    previous_clicks = get_previous_clicks(str(user_id), limit)
+
     # Job interactions
-    previous_jobs = get_previous_jobs(str(user_id), trunc, limit)
+    previous_jobs = get_previous_jobs(previous_clicks, trunc)
 
     # User data
     user_data = get_user_data(user_id)
@@ -128,7 +131,21 @@ def get_user_searches(user_id: str, limit: int) -> str:
     return flat_queries
 
 
-def get_previous_jobs(user_id: str, trunc: int, limit: int) -> str:
+def get_previous_clicks(user_id: str, limit: int) -> list[UUID]:
+    # Job Clicks
+    # load job ids of jobs the user has clicked
+    query = "SELECT job_id\
+             FROM clicks_metadata WHERE user_id = %s LIMIT %s"
+    job_clicks_set = session.execute(query, (user_id, limit))
+    # parse results
+    job_ids = []
+    for job in job_clicks_set:
+        job_ids.append(UUID(job['job_id']))
+
+    return job_ids
+
+
+def get_previous_jobs(job_ids: list[UUID], trunc: int) -> str:
     """
     Retrieves truncated job descriptions associated with jobs the user clicked.
 
@@ -147,15 +164,6 @@ def get_previous_jobs(user_id: str, trunc: int, limit: int) -> str:
     length (`trunc`) and returns them as a single string, where each truncated
     job description is separated by a comma.
     """
-    # Job Clicks
-    # load job ids of jobs the user has clicked
-    query = "SELECT job_id\
-             FROM clicks_metadata WHERE user_id = %s LIMIT %s"
-    job_clicks_set = session.execute(query, (user_id, limit))
-    # parse results
-    job_ids = []
-    for job in job_clicks_set:
-        job_ids.append(UUID(job['job_id']))
 
     # Job descriptions
     # load job descriptions of jobs the user has clicked
@@ -165,7 +173,10 @@ def get_previous_jobs(user_id: str, trunc: int, limit: int) -> str:
     job_descs = []
     for job in job_desc_set:
         # truncate job descriptions to `trunc` characters
-        job_descs.append(job['job_desc'][:trunc])
+        if trunc == -1:
+            job_descs.append(job['job_desc'])
+        else:
+            job_descs.append(job['job_desc'][:trunc])
 
     # flatten job descriptions into single string
     flat_job_descs = ", ".join(job_descs)

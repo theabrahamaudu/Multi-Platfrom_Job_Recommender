@@ -12,9 +12,12 @@ from src.utils.page_styling import (
     refresh
 )
 from src.utils.frontend_log_config import frontend as logger
-from src.utils.config import (
-    server, admin_username, admin_password
-)
+from src.utils.config import LoadConfig
+
+# load config yaml file details
+config = LoadConfig()
+server = config.get_server()
+admin_username, admin_password = config.get_admin()
 
 # page config
 st.set_page_config(
