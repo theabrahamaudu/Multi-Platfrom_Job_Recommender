@@ -238,6 +238,15 @@ def get_user_data(user_id: UUID) -> str:
         flat_preferences = ""
 
     # combine user data
-    data_string = f"{flat_skills}, {flat_work_history}, {flat_preferences}"
+    data_string = ""
+    for idx, string in enumerate([
+       flat_skills, flat_work_history, flat_preferences
+       ]):
+        if string == "":
+            pass
+        elif idx < 2:
+            data_string += f"{string}, "
+        else:
+            data_string += f"{string}"
 
     return data_string
