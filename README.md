@@ -1,57 +1,49 @@
-Multi-platform_Job_Recommender
+Multi-Platform Job Recommender
 ==============================
 
-A system to recommend jobs scrapped from multiple job platforms with the aid of NLP techniques
+A webapp to recommend jobs scrapped from multiple job platforms to users based on their unique profiles and recent activity with the aid of NLP techniques.
 
 Project Organization
 ------------
+Tree Structures:
+- [Overall](./dir_tree.md)
+- [Frontend](./frontend/dir_tree_frontend.md)
+- [Backend](./backend/dir_tree_backend.md)
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+------------
 
 
---------
+Quick Start
+===========
+Spin up an instannce of the Job Recommender app on your local machine in a few simple steps:
 
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+- Clone this repository
+    ~~~
+    git clone https://github.com/theabrahamaudu/Multi-Platfrom_Job_Recommender.git
+    ~~~
+- Create a virtual environment
+- Install `transformers` package
+    ~~~
+    pip install transformers==4.35.2
+    ~~~
+- Download recommender model
+    ~~~
+    cd backend && python src/utils/get_model.py
+    ~~~
+- Build and spin up Docker containers
+    ~~~
+    cd .. && COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose up -d
+    ~~~
+- Open the URL of the frontend container via the Docker Desktop  
+
+-----
+Other Stuff:
+~~~
+pytest --cov=. tests/
+
+python backend/src/utils/dir_tree_gen.py
+
+python backend/src/utils/dir_tree_gen.py frontend
+
+python backend/src/utils/dir_tree_gen.py backend
+~~~
