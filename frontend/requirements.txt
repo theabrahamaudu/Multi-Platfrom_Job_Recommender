@@ -11,3 +11,4 @@ streamlit==1.28.2
 streamlit-extras
 pyyaml==6.0.1
 pytest==7.4.3
+pytest-cov==4.1.0
