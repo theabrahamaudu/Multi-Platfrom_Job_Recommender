@@ -11,7 +11,7 @@ Tree Structures:
 - [Backend](./backend/dir_tree_backend.md)
 
 ## System Architecture
-Below is the project architecture:
+Below is the project architecture. Each shaded area represents a separate docker container.
 
 ![image](https://github.com/theabrahamaudu/Multi-Platfrom_Job_Recommender/blob/main/backend/docs/architecture.png)
 
