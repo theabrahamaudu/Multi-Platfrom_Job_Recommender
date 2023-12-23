@@ -84,7 +84,7 @@ if st.session_state.get("user") is None:  # noqa
                         if given_pword == actual_pword:
                             st.session_state["user"] = user
                             st.session_state["temp_user"] = deepcopy(user)
-                            logger.info("User %s logged in", user.user_id)
+                            logger.info("User %s logged in", user["user_id"])
                             st.success("Login Successful! 😀")
                             refresh()
                         else:
@@ -180,7 +180,7 @@ else:
         if st.button("Logout", type="primary"):
             for key in st.session_state.keys():
                 del st.session_state[key]
-            logger.info("User %s logged out", user.user_id)  # type: ignore  # noqa
+            logger.info("User %s logged out", user["user_id"])  # type: ignore  # noqa
             refresh()
 
     # Quick search

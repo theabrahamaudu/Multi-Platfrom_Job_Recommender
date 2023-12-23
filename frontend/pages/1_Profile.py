@@ -68,7 +68,7 @@ else:
         if st.button("Logout", type="primary"):
             for key in st.session_state.keys():
                 del st.session_state[key]
-            logger.info("User %s logged out", user.user_id)
+            logger.info("User %s logged out", user["user_id"])
             switch_page("Home")
             refresh()
 
@@ -458,7 +458,7 @@ else:
                         "change_history", "change_preferences",
                         "change_password"]:
                 st.session_state[key] = False
-            logger.info("User %s updated their profile", user.user_id)
+            logger.info("User %s updated their profile", user["user_id"])
             # show success message
             st.success("Changes Saved! 🙂")
             sleep(0.5)

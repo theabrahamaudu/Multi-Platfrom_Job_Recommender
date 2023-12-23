@@ -41,7 +41,7 @@ else:
                 del st.session_state[key]
             logger.info(
                 "User %s logged out",
-                st.session_state.get("user").user_id)  # type: ignore
+                st.session_state.get("user")["user_id"])  # type: ignore
             switch_page("Home")
             refresh()
     with st.form("Search"):
