@@ -28,6 +28,7 @@ page_bg('./assets/bg_img.jpg')
 form_bg('./assets/form_bg.jpg')
 
 # # session state variables
+user = st.session_state.get("user")
 
 # Page content
 if st.session_state.get("user") is None:  # noqa
@@ -41,7 +42,7 @@ else:
                 del st.session_state[key]
             logger.info(
                 "User %s logged out",
-                st.session_state.get("user")["user_id"])  # type: ignore
+                user["user_id"])  # type: ignore
             switch_page("Home")
             refresh()
     with st.form("Search"):
