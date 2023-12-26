@@ -18,7 +18,7 @@ Below is the project architecture. Each shaded area represents a separate docker
 ## Quick Start
 
 Spin up an instannce of the Job Recommender app on your local machine in a few simple steps:
-##### N.B: Requires Docker on Ubuntu (WSL for Windows)
+##### N.B: Requires Docker on Ubuntu (WSL for Windows) [7.5GB vRAM Minimum]
 
 - Clone this repository
     ~~~
@@ -77,7 +77,7 @@ The home page allows the user to login, and afterwards, the user can logout from
 ## Dependencies
 #### OS Level
 - Ubuntu (Developed and tested on 22.04)
-- Docker (Use WSL mode if on Windows)
+- Docker (Use WSL mode if on Windows) [7.5GB vRAM Minimum]
 - Firefox (Headless mode)
 - Gecko Driver
 
