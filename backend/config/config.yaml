@@ -30,5 +30,6 @@ selenium:
   profile_path:
     local: /home/abraham-pc/snap/firefox/common/.mozilla/firefox/
     docker: /root/.mozilla/firefox/
+  num_jobs: 100
 
 deployment: True

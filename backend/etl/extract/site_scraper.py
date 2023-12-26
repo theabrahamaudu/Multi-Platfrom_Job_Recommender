@@ -165,7 +165,7 @@ class IndeedScraper(SiteScraper, CassandraIO):
                  driver_path: str = "/usr/local/bin/geckodriver",
                  profile_name: str = "Selenium",
                  url: str = "https://ng.indeed.com/jobs?q=&l=Nigeria&from=searchOnHP&vjk=701c24acfea16b1d", # noqa
-                 num_jobs: int = 25):
+                 ):
         """
         Initializes an instance of a job website scraper.
 
@@ -173,14 +173,13 @@ class IndeedScraper(SiteScraper, CassandraIO):
         - driver_path (str): The path to the geckodriver executable.
         - profile_name (str): The name of the Selenium profile to use.
         - url (str): The URL of the website to scrape job listings from.
-        - num_jobs (int): The number of job listings to retrieve.
 
         This method initializes an instance of the class `SiteScraper`.
         It sets up the Selenium webdriver using provided options and
         configurations. It also loads configuration settings from a YAML file,
         configures the Selenium profile based on deployment settings,
-        and sets up attributes for URL, number of jobs to retrieve,
-        and various lists for job details to construct the final dataframe.
+        and sets up attributes for URL, and various lists for job details
+        to construct the final dataframe.
         """
         logger.info(f"Initializing {self.__class__.__name__}")
         CassandraIO.__init__(self)
@@ -223,7 +222,7 @@ class IndeedScraper(SiteScraper, CassandraIO):
 
         # Set url and number of jobs
         self.url = url
-        self.num_jobs = num_jobs
+        self.num_jobs = self.config["selenium"]["num_jobs"]
 
         # Set up dataframe lists
         self.uuid = []
@@ -583,11 +582,10 @@ class LinkedinScraper(IndeedScraper):
     - profile_name (str): The name of the Selenium profile to use.
     - url (str): The URL of the LinkedIn job search page with default
       parameters for location and keywords.
-    - num_jobs (int): The number of job listings to retrieve.
 
     This class initializes a scraper for LinkedIn job listings with default
-    parameters for the search URL, driver path, profile name, and the number
-    of jobs to retrieve. It inherits functionality from the IndeedScraper
+    parameters for the search URL, driver path, profile name.
+    It inherits functionality from the IndeedScraper
     class and customizes LinkedIn-specific parameters.
     """
     def __init__(self, driver_path: str = "/usr/local/bin/geckodriver",
@@ -596,8 +594,8 @@ class LinkedinScraper(IndeedScraper):
                                 "keywords=&location=Nigeria&geoId=" +
                                 "105365761&trk=public_jobs_jobs-search-bar_search-submit" + # noqa
                                 "&position=1&pageNum=0"),
-                 num_jobs: int = 25):
-        super().__init__(driver_path, profile_name, url, num_jobs)
+                 ):
+        super().__init__(driver_path, profile_name, url)
 
     def scrape(self):
         """
@@ -812,19 +810,18 @@ class JobbermanScraper(IndeedScraper):
     - driver_path (str): The path to the geckodriver executable.
     - profile_name (str): The name of the Selenium profile to use.
     - url (str): The URL of the Jobberman job search page.
-    - num_jobs (int): The number of job listings to retrieve.
 
     This class initializes a scraper for Jobberman job listings with default
-    parameters for the search URL, driver path, profile name, and the number
-    of jobs to retrieve. It inherits functionality from the IndeedScraper
+    parameters for the search URL, driver path, profile name.
+    It inherits functionality from the IndeedScraper
     class and customizes Jobberman-specific parameters.
     """
     def __init__(self,
                  driver_path: str = "/usr/local/bin/geckodriver",
                  profile_name: str = "Selenium",
                  url: str = "https://www.jobberman.com/jobs",
-                 num_jobs: int = 25):
-        super().__init__(driver_path, profile_name, url, num_jobs)
+                 ):
+        super().__init__(driver_path, profile_name, url)
 
     def scrape(self):
         """
