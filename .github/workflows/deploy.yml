@@ -1,0 +1,32 @@
+name: Deploy Job Recommender
+
+on:
+  push:
+    branches:
+      - deploy  # Adjust this based on your branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'  # Specify the Python version
+
+      - name: Install dependencies
+        run: |
+          pip install transformers==4.35.2
+
+      - name: Download recommender model
+        run: |
+          cd backend && python src/utils/get_model.py
+
+      - name: Build and start Docker containers
+        run: |
+          cd ..
+          COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose up -d
